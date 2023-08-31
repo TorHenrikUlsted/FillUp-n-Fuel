@@ -20,5 +20,5 @@ The app only allows for number inputs, and for your own safety, you should not t
 We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.
 
 ## Contact Us
-If you have any questions or concerns about our Privacy Policy or the app, please [ Contact Us ] ( mailto : [mailto:tor.henrik@thuworks.com] )
+If you have any questions or concerns about our Privacy Policy or the app, please [Contact Us](mailto:[mailto:tor.henrik@thuworks.com])
 .
