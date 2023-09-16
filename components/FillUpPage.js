@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet,  Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet,  Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform } from 'react-native';
 import storageService from './StorageService';
 import Gauge from './Gauge';
 import BackButton from './buttons/BackButton';
 import CalculateButton from './buttons/CalculateButton';
+import NumberInput from './inputs/NumberInput';
 import FillUpModal from './modals/FillUpModal';
 import { useLanguage } from './LanguageProvider';
 
@@ -35,7 +36,7 @@ const FillUpPage = () => {
   const handleTankSizeChange = (text) => {
     const value = parseFloat(text);
     setTankSize(value);
-    storageService.saveData('FillUpTankSize', value);
+    storageService.saveData('tankSize', value);
   };
 
   const handleFuelPriceChange = (text) => {
@@ -98,21 +99,19 @@ const handleCalculate = () => {
         <View style={styles.grid}>
           <View style={styles.gridItem}>
             <Text style={styles.inputLabel}>{translations[language].tankSize}</Text>
-              <TextInput
+              <NumberInput
                 style={styles.input}
                 value={tankSize ? tankSize.toString(): ''}
                 onChangeText={handleTankSizeChange}
-                keyboardType="numeric"
               />
 
           </View>
           <View style={styles.gridItem}>
             <Text style={styles.inputLabel}>{translations[language].fuelPrice}</Text>
-            <TextInput
+            <NumberInput
               style={styles.input}
               value={fuelPrice ? fuelPrice.toString(): ''}
               onChangeText={handleFuelPriceChange}
-              keyboardType="numeric"
             />
           </View>
         </View>

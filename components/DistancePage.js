@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, 
+import { View, Text, StyleSheet, TouchableOpacity, 
   KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback 
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DistanceModal from './modals/DistanceModal';
 import { useLanguage } from './LanguageProvider';
 import BackButton from './buttons/BackButton';
+import NumberInput from './inputs/NumberInput';
 import CalculateButton from './buttons/CalculateButton';
 import storageService from './StorageService';
 
@@ -48,14 +49,14 @@ const DistancePage = () => {
   const { language } = useLanguage();
 
   const [distanceUnit, setDistanceUnit] = useState('km');
-  const [distance, setDistance] = useState('');
-  const [tankSize, setTankSize] = useState('');
-  const [fuelPrice, setFuelPrice] = useState('');
+  const [distance, setDistance] = useState(0);
+  const [tankSize, setTankSize] = useState(0);
+  const [fuelPrice, setFuelPrice] = useState(0);
   const [fuelUnit, setFuelUnit] = useState('L/100km');
-  const [fuelMilage, setFuelMilage] = useState('');
-  const [extra, setExtra] = useState('');
+  const [fuelMilage, setFuelMilage] = useState(0);
+  const [extra, setExtra] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
-  const [cost, setCost] = useState('');
+  const [cost, setCost] = useState(0);
   const [refillMessage, setRefillMessage] = useState('');
   const [fuelConsumption, setFuelConsumption] = useState(0);
   const [costBothWaysKm, setCostBothWaysKm] = useState(0);
@@ -119,20 +120,32 @@ const DistancePage = () => {
       }
 
     // Convert cost to miles if necessary
-if (distanceUnit === 'mi') {
-  setCost(prevCost => prevCost / 1.60934);
-  if (costOneWayKm) {
-    setCostOneWayMi((costOneWayKm / 1.60934).toFixed(2));
-    setCostBothWaysMi((costBothWaysKm / 1.60934).toFixed(2));
-    setCostPerMi((costPerKm / 1.60934).toFixed(2));
-  }
-} else {
-  if (costOneWayMi) {
-    setCostOneWayKm((costOneWayMi * 1.60934).toFixed(2));
-    setCostBothWaysKm((costBothWaysMi * 1.60934).toFixed(2));
-    setCostPerKm((costPerMi * 1.60934).toFixed(2));
-  }
-}
+    let newCost = cost;
+    let newCostOneWay;
+    let newCostBothWays;
+    let newCostPer;
+    if (distanceUnit === 'mi') {
+      newCost = cost / 1.60934;
+      if (costOneWayKm) {
+        newCostOneWay = (costOneWayKm / 1.60934).toFixed(2);
+        newCostBothWays = (costBothWaysKm / 1.60934).toFixed(2);
+        newCostPer = (costPerKm / 1.60934).toFixed(2);
+      }
+    } else {
+      if (costOneWayMi) {
+        newCostOneWay = (costOneWayMi * 1.60934).toFixed(2);
+        newCostBothWays = (costBothWaysMi * 1.60934).toFixed(2);
+        newCostPer = (costPerMi * 1.60934).toFixed(2);
+      }
+    }
+
+      // Set all states at once
+  setFuelConsumption(fuelConsumption);
+  setCost(newCost);
+  setCostPerKm(newCostPer);
+  setCostOneWayKm(newCostOneWay);
+  setCostBothWaysKm(newCostBothWays);
+  setDistancePerTank(distancePerTank);
 
     // Check if refilling is necessary
   if (tankSize) {
@@ -156,31 +169,31 @@ if (distanceUnit === 'mi') {
     const getData = async () => {
       const distanceUnit = await storageService.getData('distanceUnit');
       if (distanceUnit !== null) {
-        setDistanceUnit(distanceUnit);
+        setDistanceUnit(parseFloat(distanceUnit));
       }
       const distanceNumber = await storageService.getData('distanceNumber');
       if (distanceNumber !== null) {
-        setDistance(distanceNumber);
+        setDistance(parseFloat(distanceNumber));
       }
-      const distanceTankSize = await storageService.getData('distanceTankSize');
-      if (distanceTankSize !== null) {
-        setTankSize(distanceTankSize);
+      const tankSize = await storageService.getData('tankSize');
+      if (tankSize !== null) {
+        setTankSize(tankSize);
       }
       const FuelPrice = await storageService.getData('FuelPrice');
       if (FuelPrice !== null) {
-        setFuelPrice(FuelPrice);
+        setFuelPrice(parseFloat(FuelPrice));
       }
       const DistanceFuelUnit = await storageService.getData('DistanceFuelUnit');
       if (DistanceFuelUnit !== null) {
-        setFuelUnit(DistanceFuelUnit);
+        setFuelUnit(parseFloat(DistanceFuelUnit));
       }
       const DistanceFuelMilage = await storageService.getData('DistanceFuelMilage');
       if (DistanceFuelMilage !== null) {
-        setFuelMilage(DistanceFuelMilage);
+        setFuelMilage(parseFloat(DistanceFuelMilage));
       }
       const DistanceExtra = await storageService.getData('DistanceExtra');
       if (DistanceExtra !== null) {
-        setExtra(DistanceExtra);
+        setExtra(parseFloat(DistanceExtra));
       }
     };
     getData();
@@ -220,41 +233,41 @@ if (distanceUnit === 'mi') {
             <Picker.Item label={translations[language].miles} value="mi" />
         </Picker>
         </View>
-        <TextInput
-        value={distance}
-        onChangeText={(text) => {
-          setDistance(text);
-          storageService.saveData('distanceNumber', text);
-        }}
-        keyboardType="numeric"
-        placeholder={`${translations[language].enterDistance} ${distanceUnit}`}
-        style={styles.input}
+        <NumberInput 
+          value={distancec ? distance.toString() : ''}
+          onChangeText={(text) => {
+            const numericValue = parseFloat(text);
+            setDistance(numericValue);
+            storageService.saveData('distanceNumber', numericValue);
+          }}
+          placeholder={`${translations[language].enterDistance} ${distanceUnit}`}
+          style={styles.input}
         />
         <CalculateButton onPress={handleCalculate} />
 
         <View style={styles.grid}>
         <View style={styles.gridItem}>
             <Text style={styles.gridItemLabel}>{translations[language].tankSize}</Text>
-            <TextInput
-            value={tankSize}
+            <NumberInput
+            value={tankSize ? tankSize.toString() : ''}
             onChangeText={(text) => {
-              setTankSize(text);
-              storageService.saveData('distanceTankSize', text);
+              const value = parseFloat(text);
+              setTankSize(value);
+              storageService.saveData('tankSize', value);
             }}
-            keyboardType="numeric"
             placeholder={translations[language].enterTankSize}
             style={styles.input}
             />
         </View>
         <View style={styles.gridItem}>
             <Text style={styles.gridItemLabel}>{translations[language].fuelPrice}</Text>
-            <TextInput
-            value={fuelPrice}
+            <NumberInput
+            value={fuelPrice ? fuelPrice.toString : ''}
             onChangeText={(text) => {
-              setFuelPrice(text);
-              storageService.saveData('FuelPrice', text);
+              const numericValue = parseFloat(text);
+              setFuelPrice(numericValue);
+              storageService.saveData('FuelPrice', numericValue);
             }}
-            keyboardType="numeric"
             placeholder={translations[language].enterFuelPrice}
             style={styles.input}
             />
@@ -272,12 +285,12 @@ if (distanceUnit === 'mi') {
             <Picker.Item label="L/100km" value="L/100km" />
             <Picker.Item label="M/Gallon" value="mi/gal" />
             </Picker>
-            <TextInput
-            value={fuelMilage}
-            keyboardType="numeric"
+            <NumberInput
+            value={fuelMilage ? fuelMilage.toString() : ''}
             onChangeText={(text) => {
-              setFuelMilage(text);
-              storageService.saveData('DistanceFuelMilage', text);
+              const numericValue = parseFloat(text);
+              setFuelMilage(numericValue);
+              storageService.saveData('DistanceFuelMilage', numericValue);
             }}
             placeholder={`${translations[language].fuelEfficiency}`}
             style={styles.input}
@@ -285,13 +298,13 @@ if (distanceUnit === 'mi') {
         </View>
         <View style={[styles.gridItem,{paddingTop: 34}]} >
           <Text style={styles.gridItemLabel}>{translations[language].extra} </Text> 
-            <TextInput
-            value={extra}
+            <NumberInput
+            value={extra ? extra.toString() : ''}
             onChangeText={(text) => {
-              setExtra(text);
-              storageService.saveData('DistanceExtra', text);
+              const numericValue = parseFloat(text);
+              setExtra(numericValue);
+              storageService.saveData('DistanceExtra', numericValue);
             }}
-            keyboardType="numeric"
             placeholder={`${translations[language].enterExtraFees}`}
             style={styles.input}
             />
