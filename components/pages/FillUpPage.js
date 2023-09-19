@@ -27,8 +27,42 @@ const FillUpPage = () => {
   const [cost, setCost] = useState(0);
   const [litersNeeded, setLitersNeeded] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [fuelUnit, setFuelUnit] = useState("");
+  const [fuelUnit, setFuelUnit] = useState('');
+  const [fuelMilage, setFuelMilage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const tankSize = await storageService.getData("tankSize");
+        if (tankSize !== null) {
+          setTankSize(tankSize);
+        }
+        const fuelPrice = await storageService.getData("fuelPrice");
+        if (fuelPrice !== null) {
+          setFuelPrice(fuelPrice);
+        }
+        const currentFuelLevel = await storageService.getData("currentFuelLevel");
+        if (currentFuelLevel !== null) {
+          setCurrentFuelLevel(currentFuelLevel);
+        }
+        const fuelUnit = await storageService.getData("fuelUnit");
+        if (fuelUnit !== null) {
+          setFuelUnit(fuelUnit);
+        }
+        const fuelMilage = await storageService.getData("fuelMilage");
+        if (fuelMilage !== null) {
+          setFuelMilage(fuelMilage);
+        }
+      } catch (error) {
+        console.error("Error fetching storage data: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getData();
+  }, []);
 
   const handleTankSizeChange = (text) => {
     const value = parseFloat(text);
@@ -45,67 +79,48 @@ const FillUpPage = () => {
       storageService.saveData("fuelPrice", value);
     }
   };
-
-  const handleFuelUnitChange = (oldFuelUnit, newFuelUnit) => {
-    if (oldFuelUnit === "") {
-      return;
-    }
-
+  const handleFuelUnit = (oldFuelUnit, newFuelUnit) => {
+    const oldFuelMilage = parseFloat(fuelMilage);
+    let newFuelMilage;
     let newTankSize;
     let newFuelPrice;
 
+    if (oldFuelMilage === "") {
+      setFuelMilage("0");
+      storageService.saveData("fuelMilage", "0");
+      return;
+    }
+
     if (oldFuelUnit === "lpk" && newFuelUnit === "mpg") {
+      newFuelMilage = 235.215 / oldFuelMilage;
       newTankSize = tankSize * 0.264172;
       newFuelPrice = fuelPrice * 3.785411784;
+      setFuelMilage(newFuelMilage);
       setTankSize(newTankSize);
       setFuelPrice(newFuelPrice);
     } else if (oldFuelUnit === "mpg" && newFuelUnit === "lpk") {
+      newFuelMilage = 235.215 / oldFuelMilage;
       newTankSize = Math.round(tankSize * 3.785411784);
       newFuelPrice = fuelPrice / 3.785411784;
+      setFuelMilage(newFuelMilage);
       setTankSize(newTankSize);
       setFuelPrice(newFuelPrice);
+      console.log(newFuelMilage);
     }
 
+    const numMilage = newFuelMilage.toFixed(1);
     const numPrice = newFuelPrice.toFixed(2);
+
+    setFuelMilage(numMilage.toString());
     setTankSize(newTankSize.toString());
     setFuelUnit(newFuelUnit);
     setFuelPrice(numPrice);
 
     storageService.saveData("fuelUnit", newFuelUnit);
+    storageService.saveData("fuelMilage", numMilage);
     storageService.saveData("tankSize", newTankSize);
     storageService.saveData("fuelPrice", numPrice);
   };
-
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const tankSize = await storageService.getData("tankSize");
-        if (tankSize !== null) {
-          setTankSize(tankSize);
-        }
-        const fuelPrice = await storageService.getData("fuelPrice");
-        if (fuelPrice !== null) {
-          setFuelPrice(fuelPrice);
-        }
-        const currentFuelLevel = await storageService.getData(
-          "currentFuelLevel"
-        );
-        if (currentFuelLevel !== null) {
-          setCurrentFuelLevel(currentFuelLevel);
-        }
-        const fuelUnit = await storageService.getData("fuelUnit");
-        if (fuelUnit !== null) {
-          setFuelUnit(fuelUnit);
-        }
-      } catch (error) {
-        console.error("Error fetching storage data: ", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getData();
-  }, []);
 
   const handleCalculate = () => {
     // Convert the current fuel level from a fraction to a number
@@ -136,7 +151,7 @@ const FillUpPage = () => {
             <FuelPicker
               selectedValue={fuelUnit}
               onValueChange={(newFuelUnit) => {
-                handleFuelUnitChange(fuelUnit, newFuelUnit);
+                handleFuelUnit(fuelUnit, newFuelUnit);
               }}
             ></FuelPicker>
             <View style={styles.grid}>

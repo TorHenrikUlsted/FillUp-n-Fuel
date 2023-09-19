@@ -52,15 +52,16 @@ const DistancePage = () => {
   };
 
   const handleFuelUnit = (oldFuelUnit, newFuelUnit) => {
+    let oldFuelMilage = parseFloat(fuelMilage);
+    let newFuelMilage;
+    let newTankSize;
+    let newFuelPrice;
+
     if (oldFuelMilage === "") {
       setFuelMilage("0");
       storageService.saveData("fuelMilage", "0");
       return;
     }
-    let oldFuelMilage = parseFloat(fuelMilage);
-    let newFuelMilage;
-    let newTankSize;
-    let newFuelPrice;
 
     if (oldFuelUnit === "lpk" && newFuelUnit === "mpg") {
       newFuelMilage = 235.215 / oldFuelMilage;
