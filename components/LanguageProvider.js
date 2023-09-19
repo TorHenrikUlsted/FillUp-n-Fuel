@@ -1,20 +1,25 @@
-import React, { useState, createContext, useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import storageService from './StorageService';
+import React, { useState, createContext, useContext, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import storageService from "./StorageService";
+import en from "./lang/en";
+import no from "./lang/no";
 
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState("en");
+  const [translations, setTranslations] = useState(en);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Retrieve the saved language from AsyncStorage when the component is mounted
     const getSavedLanguage = async () => {
       try {
-        const savedLanguage = await storageService.getData('language');
+        const savedLanguage = await storageService.getData("language");
         if (savedLanguage) {
           setLanguage(savedLanguage);
+          setTranslations(savedLanguage === "en" ? en : no);
         }
+        setLoading(false);
       } catch (error) {
         console.log(error);
       }
@@ -25,15 +30,23 @@ export const LanguageProvider = ({ children }) => {
   const handleLanguageChange = async (newLanguage) => {
     // Save the selected language to AsyncStorage using storageService
     try {
-      await storageService.saveData('language', newLanguage);
+      await storageService.saveData("language", newLanguage);
       setLanguage(newLanguage);
+      setTranslations(newLanguage === "en" ? en : no);
     } catch (error) {
       console.log(error);
     }
   };
 
+  if (loading) {
+    console.log("loading...");
+    return;
+  }
+
   return (
-    <LanguageContext.Provider value={{ language, handleLanguageChange }}>
+    <LanguageContext.Provider
+      value={{ language, translations, handleLanguageChange }}
+    >
       {children}
     </LanguageContext.Provider>
   );
@@ -46,10 +59,10 @@ export const LanguageSelector = () => {
 
   return (
     <View style={styles.flags}>
-      <TouchableOpacity onPress={() => handleLanguageChange('no')}>
+      <TouchableOpacity onPress={() => handleLanguageChange("no")}>
         <Text style={styles.flagText}>🇳🇴</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => handleLanguageChange('en')}>
+      <TouchableOpacity onPress={() => handleLanguageChange("en")}>
         <Text style={styles.flagText}>🇬🇧</Text>
       </TouchableOpacity>
     </View>
@@ -58,7 +71,7 @@ export const LanguageSelector = () => {
 
 const styles = StyleSheet.create({
   flags: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   flagText: {
     fontSize: 21,

@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const storageService = {
   saveData: async (key, value) => {
@@ -15,7 +15,7 @@ const storageService = {
         return JSON.parse(value);
       }
     } catch (error) {
-      console.log(error);
+      console.error(`Error fetching data for key: ${key}`, error);
     }
   },
 };

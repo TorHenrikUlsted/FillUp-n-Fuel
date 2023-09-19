@@ -1,9 +1,9 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import CustomHeader from './CustomHeader';
-import HomePage from './HomePage';
-import DistancePage from './DistancePage';
-import FillUpPage from './FillUpPage';
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import CustomHeader from "./CustomHeader";
+import HomePage from "./HomePage";
+import DistancePage from "./DistancePage";
+import FillUpPage from "./FillUpPage";
 
 const Stack = createStackNavigator();
 
@@ -33,7 +33,6 @@ const AppNavigator = () => {
         }}
       />
     </Stack.Navigator>
-    
   );
 };
 

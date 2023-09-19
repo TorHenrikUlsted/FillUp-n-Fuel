@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { LanguageSelector } from './LanguageProvider';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { LanguageSelector } from "./LanguageProvider";
 
 const CustomHeader = () => {
   const navigation = useNavigation();
@@ -15,9 +15,9 @@ const CustomHeader = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
     height: 80,
     paddingHorizontal: 16,
     zIndex: 1,

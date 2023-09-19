@@ -1,50 +1,30 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { useLanguage } from './LanguageProvider';
-
-const translations = {
-  en: {
-    chooseMode: 'Choose Mode',
-    distanceCalculator: 'Distance Calculator',
-    fillUpCalculator: 'Fill Up Calculator',
-  },
-  no: {
-    chooseMode: 'Velg modus',
-    distanceCalculator: 'Avstandskalkulator',
-    fillUpCalculator: 'Fyll opp kalkulator',
-  },
-};
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { useLanguage } from "./LanguageProvider";
 
 const HomePage = ({ navigation }) => {
-  const { language } = useLanguage();
-
+  const { language, translations } = useLanguage();
   return (
     <View style={styles.container}>
-      <View style={styles.logoContainer}> 
-        <Image 
-          style={styles.logo}
-          source={require('../assets/icon.png')} 
-        />
+      <View style={styles.logoContainer}>
+        <Image style={styles.logo} source={require("../assets/icon.png")} />
       </View>
-      
 
-      <Text style={styles.heading}>{translations[language].chooseMode}</Text>
+      <Text style={styles.heading}>{translations.chooseMode}</Text>
       <View style={styles.buttons}>
-      <TouchableOpacity
+        <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('DistancePage')}
+          onPress={() => navigation.navigate("DistancePage")}
         >
           <Text style={styles.buttonText}>
-            {translations[language].distanceCalculator}
+            {translations.distanceCalculator}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-        style={styles.button}
-        onPress={() => navigation.navigate('FillUpPage')}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("FillUpPage")}
         >
-          <Text style={styles.buttonText}>
-            {translations[language].fillUpCalculator}
-          </Text>
+          <Text style={styles.buttonText}>{translations.fillUpCalculator}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -54,39 +34,43 @@ const HomePage = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoContainer: {
     flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
   },
   logo: {
-    marginBottom: 50,
-    justifyContent: 'center',
+    marginBottom: 30,
+    width: 300,
+    height: 300,
+    justifyContent: "center",
   },
   logoText: {
-    textAlign: 'center',
+    textAlign: "center",
   },
   heading: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 50,
+    fontWeight: "bold",
+    marginBottom: 20,
   },
   buttons: {
-    width: '100%',
+    width: "100%",
     paddingHorizontal: 20,
   },
   button: {
-    backgroundColor: '#00b300',
+    backgroundColor: "#a8bfad",
     paddingVertical: 15,
     borderRadius: 5,
     marginBottom: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

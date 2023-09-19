@@ -1,23 +1,10 @@
-import React, { useState, useEffect  } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
-import Svg, { Path, Line } from 'react-native-svg';
-import LeftArrowButton from './buttons/LeftArrowButton';
-import RightArrowButton from './buttons/RightArrowButton';
-import { useLanguage } from './LanguageProvider';
-
-const translations = {
-  en: {
-      left: 'left',
-      right: 'right',
-  },
-  no: {
-      left: 'venstre',
-      right: 'høyre',
-  },
-};
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text } from "react-native";
+import Svg, { Path, Line } from "react-native-svg";
+import LeftArrowButton from "./buttons/LeftArrowButton";
+import RightArrowButton from "./buttons/RightArrowButton";
 
 const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange }) => {
-  const { language } = useLanguage();
   const numLines = 16;
   const [angle, setAngle] = useState(-90);
   const [lineIndex, setLineIndex] = useState(numLines / 2);
@@ -31,15 +18,11 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange }) => {
   }, [lineIndex]);
 
   const radius = (size - strokeWidth) / 2;
-  const circumference = radius * Math.PI;
-  const strokeDasharray = `${circumference} ${circumference}`;
-  const strokeDashoffset = circumference - ((angle + 90) / 180) * circumference;
-
   const lineLength = 25; // length of longer lines
 
   const lines = [];
   for (let i = 0; i <= numLines; i++) {
-    const lineAngle = ((i * Math.PI) / numLines) - (Math.PI);
+    const lineAngle = (i * Math.PI) / numLines - Math.PI;
     const x1 = size / 2 + radius * Math.cos(lineAngle);
     const y1 = size / 2 + radius * Math.sin(lineAngle);
     const currentLineLength = i % (numLines / 4) === 0 ? lineLength : 10; // make every fourth line longer
@@ -60,33 +43,33 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange }) => {
 
   const getFraction = (lineIndex, numLines) => {
     if (lineIndex === 0) {
-        return [0, '/', 0];
+      return [0, "/", 0];
     } else if (lineIndex === numLines / 4) {
-        return [1, '/', 4];
+      return [1, "/", 4];
     } else if (lineIndex === numLines / 2) {
-        return [1, '/', 2];
+      return [1, "/", 2];
     } else if (lineIndex === (numLines / 4) * 3) {
-        return [3, '/', 4];
+      return [3, "/", 4];
     } else if (lineIndex === numLines) {
-        return [1, '/', 1];
+      return [1, "/", 1];
     } else {
-        const gcd = (a, b) => {
-            if (!b) {
-                return a;
-            }
-            return gcd(b, a % b);
-        };
-        const numerator = lineIndex;
-        const denominator = numLines;
-        const divisor = gcd(numerator, denominator);
-        return [numerator / divisor, '/', denominator / divisor];
+      const gcd = (a, b) => {
+        if (!b) {
+          return a;
+        }
+        return gcd(b, a % b);
+      };
+      const numerator = lineIndex;
+      const denominator = numLines;
+      const divisor = gcd(numerator, denominator);
+      return [numerator / divisor, "/", denominator / divisor];
     }
-};
+  };
 
   const handlePress = (side) => {
-    if (side === 'left') {
+    if (side === "left") {
       if (angle > -180) {
-        setAngle((prevAngle) => prevAngle - (180 / numLines));
+        setAngle((prevAngle) => prevAngle - 180 / numLines);
         setLineIndex((prevLineIndex) => {
           const newLineIndex = prevLineIndex - 1;
           if (newLineIndex < 0) {
@@ -96,9 +79,9 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange }) => {
           }
         });
       }
-    } else if (side === 'right') {
+    } else if (side === "right") {
       if (angle < 0) {
-        setAngle((prevAngle) => prevAngle + (180 / numLines));
+        setAngle((prevAngle) => prevAngle + 180 / numLines);
         setLineIndex((prevLineIndex) => {
           const newLineIndex = prevLineIndex + 1;
           if (newLineIndex > numLines) {
@@ -110,20 +93,14 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange }) => {
       }
     }
   };
-      
+
   return (
-    
     <View style={styles.gauge}>
-      
-      <Svg width={size} height={size/1.5}>
+      <Svg width={size} height={size / 1.5}>
         <Path
-          d={`M${size / 2} ${size / 2} L${size /
-            2 +
-            radius *
-              Math.cos((angle * Math.PI) / 180)} ${size /
-            2 +
-            radius *
-              Math.sin((angle * Math.PI) / 180)}`}
+          d={`M${size / 2} ${size / 2} L${
+            size / 2 + radius * Math.cos((angle * Math.PI) / 180)
+          } ${size / 2 + radius * Math.sin((angle * Math.PI) / 180)}`}
           stroke="#f00"
           strokeWidth={strokeWidth}
         />
@@ -138,41 +115,40 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange }) => {
       <Text>{getFraction(lineIndex, numLines)}</Text>
 
       <View style={styles.pressableContainer}>
-        <LeftArrowButton onPress={() => handlePress('left')} />
-        <RightArrowButton onPress={() => handlePress('right')} />
+        <LeftArrowButton onPress={() => handlePress("left")} />
+        <RightArrowButton onPress={() => handlePress("right")} />
       </View>
-
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-    gauge: {
-        alignItems: 'center',
-    },
-    tankLevel: {
-        color: 'black',
-        fontSize: 15,
-    },
-    fuelLevel: {
-        flexDirection: 'row',
-        marginTop: -70,
-    },
-    empty: {
-        fontSize: 25,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        flex: 1/2,
-    },
-    full: {
-        fontSize: 25,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        flex: 1/2,
-    },
-    pressableContainer: {
-        flexDirection: 'row',
-    },
+  gauge: {
+    alignItems: "center",
+  },
+  tankLevel: {
+    color: "black",
+    fontSize: 15,
+  },
+  fuelLevel: {
+    flexDirection: "row",
+    marginTop: -70,
+  },
+  empty: {
+    fontSize: 25,
+    fontWeight: "bold",
+    textAlign: "center",
+    flex: 1 / 2,
+  },
+  full: {
+    fontSize: 25,
+    fontWeight: "bold",
+    textAlign: "center",
+    flex: 1 / 2,
+  },
+  pressableContainer: {
+    flexDirection: "row",
+  },
 });
 
 export default Gauge;

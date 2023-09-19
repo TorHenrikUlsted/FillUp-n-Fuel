@@ -3,18 +3,9 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import { useLanguage } from '../LanguageProvider';
 
-const translations = {
-  en: {
-      back: 'Back',
-  },
-  no: {
-      back: 'Tilbake'
-  },
-};
-
 const BackButton = () => {
   const navigation = useNavigation();
-  const { language } = useLanguage();
+  const { language, translations } = useLanguage();
 
   const handlePress = () => {
     navigation.navigate('Home')
@@ -22,7 +13,7 @@ const BackButton = () => {
 
   return (
     <TouchableOpacity style={styles.button} onPress={handlePress}>
-      <Text style={styles.text}>{translations[language].back}</Text>
+      <Text style={styles.text}>{translations.back}</Text>
     </TouchableOpacity>
   );
 };
