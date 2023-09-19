@@ -7,11 +7,11 @@ A very simple app calculating fuel cost for a certain distance and how much it w
 
 # Screenshots
 <p align="center">
-  <img src="./assets/HomePage.jpg" width="240" />
-  <img src="./assets/DistancePage.jpg" width="240" />
-  <img src="./assets/DistanceModal.jpg" width="240" />
-  <img src="./assets/FillUpPage.jpg" width="240" />
-  <img src="./assets/FillUpModal.jpg" width="240" />
+  <img src="./assets/phoneScreenshots/HomePage.jpg" width="240" />
+  <img src="./assets/phoneScreenshots/DistancePage.jpg" width="240" />
+  <img src="./assets/phoneScreenshots/DistanceModal.jpg" width="240" />
+  <img src="./assets/phoneScreenshots/FillUpPage.jpg" width="240" />
+  <img src="./assets/phoneScreenshots/FillUpModal.jpg" width="240" />
 </p>
 
 # License
