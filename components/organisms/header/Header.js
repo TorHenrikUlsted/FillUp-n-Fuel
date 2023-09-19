@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { LanguageSelector } from "./LanguageProvider";
+import { LanguageSelector } from "../../../utils/LanguageService";
 
 const CustomHeader = () => {
   const navigation = useNavigation();

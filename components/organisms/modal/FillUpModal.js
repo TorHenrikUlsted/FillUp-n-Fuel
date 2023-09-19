@@ -1,9 +1,9 @@
 import React from "react";
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { useLanguage } from "../LanguageProvider";
+import { useLanguage } from "../../../utils/LanguageService";
 
 const FillUpModal = ({ isVisible, cost, litersNeeded, fuelUnit, onClose }) => {
-  const { language, translations } = useLanguage();
+  const {translations } = useLanguage();
 
   return (
     <Modal visible={isVisible} transparent={true} animationType="slide">

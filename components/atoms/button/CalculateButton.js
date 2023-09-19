@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useLanguage } from '../LanguageProvider';
+import { useLanguage } from '../../../utils/LanguageService';
 
 const CalculateButton = ({ onPress }) => {
     const { language, translations } = useLanguage();

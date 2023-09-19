@@ -1,13 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
-import { useLanguage } from "./LanguageProvider";
+import { useLanguage } from "../../utils/LanguageService";
 
 const HomePage = ({ navigation }) => {
-  const { language, translations } = useLanguage();
+  const { translations } = useLanguage();
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
-        <Image style={styles.logo} source={require("../assets/icon.png")} />
+        <Image style={styles.logo} source={require("../../assets/icon.png")} />
       </View>
 
       <Text style={styles.heading}>{translations.chooseMode}</Text>

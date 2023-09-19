@@ -6,7 +6,7 @@ import no from "./lang/no";
 
 const LanguageContext = createContext();
 
-export const LanguageProvider = ({ children }) => {
+export const LanguageService = ({ children }) => {
   const [language, setLanguage] = useState("en");
   const [translations, setTranslations] = useState(en);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,6 @@ export const LanguageProvider = ({ children }) => {
   }, []);
 
   const handleLanguageChange = async (newLanguage) => {
-    // Save the selected language to AsyncStorage using storageService
     try {
       await storageService.saveData("language", newLanguage);
       setLanguage(newLanguage);

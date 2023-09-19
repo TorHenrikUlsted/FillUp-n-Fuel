@@ -11,12 +11,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import DistanceModal from "./modals/DistanceModal";
-import { useLanguage } from "./LanguageProvider";
-import BackButton from "./buttons/BackButton";
-import CalculateButton from "./buttons/CalculateButton";
-import storageService from "./StorageService";
-import FuelPicker from "./pickers/FuelPicker";
+import DistanceModal from "../organisms/modal/DistanceModal";
+import { useLanguage } from "../../utils/LanguageService";
+import BackButton from "../atoms/button/BackButton";
+import CalculateButton from "../atoms/button/CalculateButton";
+import storageService from "../../utils/StorageService";
+import FuelPicker from "../atoms/picker/FuelPicker";
 
 const DistancePage = () => {
   const { language, translations } = useLanguage();

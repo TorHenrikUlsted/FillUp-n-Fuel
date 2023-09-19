@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useLanguage } from "../LanguageProvider";
+import { useLanguage } from "../../../utils/LanguageService";
 
 const FuelPicker = ({ selectedValue, onValueChange }) => {
   const { language, translations } = useLanguage();

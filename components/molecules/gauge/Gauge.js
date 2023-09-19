@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Text } from "react-native";
 import Svg, { Path, Line } from "react-native-svg";
-import LeftArrowButton from "./buttons/LeftArrowButton";
-import RightArrowButton from "./buttons/RightArrowButton";
+import LeftArrowButton from "../../atoms/button/LeftArrowButton";
+import RightArrowButton from "../../atoms/button/RightArrowButton";
 
 const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange }) => {
   const numLines = 16;

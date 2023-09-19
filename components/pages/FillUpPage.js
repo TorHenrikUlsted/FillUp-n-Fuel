@@ -10,17 +10,17 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import storageService from "./StorageService";
-import Gauge from "./Gauge";
-import Spacer from "./misc/spacer";
-import FuelPicker from "./pickers/FuelPicker";
-import BackButton from "./buttons/BackButton";
-import CalculateButton from "./buttons/CalculateButton";
-import FillUpModal from "./modals/FillUpModal";
-import { useLanguage } from "./LanguageProvider";
+import storageService from "../../utils/StorageService";
+import { useLanguage } from "../../utils/LanguageService";
+import Gauge from "../molecules/gauge/Gauge";
+import Spacer from "../atoms/spacer/spacer";
+import FuelPicker from "../atoms/picker/FuelPicker";
+import BackButton from "../atoms/button/BackButton";
+import CalculateButton from "../atoms/button/CalculateButton";
+import FillUpModal from "../organisms/modal/FillUpModal";
 
 const FillUpPage = () => {
-  const { language, translations } = useLanguage();
+  const { translations } = useLanguage();
   const [tankSize, setTankSize] = useState(0);
   const [fuelPrice, setFuelPrice] = useState(0);
   const [currentFuelLevel, setCurrentFuelLevel] = useState([1, "/", 2]);
@@ -79,7 +79,6 @@ const FillUpPage = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        console.log("fetching data... ");
         const tankSize = await storageService.getData("tankSize");
         if (tankSize !== null) {
           setTankSize(tankSize);
