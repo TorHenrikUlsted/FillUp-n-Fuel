@@ -1,15 +1,15 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { LanguageProvider } from './components/LanguageProvider';
-import AppNavigator from './components/AppNavigator';
+import { LanguageService } from './utils/LanguageService';
+import AppNavigator from './navigation/AppNavigator';
 
 const App = () => {
   return (
-    <LanguageProvider>
+    <LanguageService>
       <NavigationContainer>
         <AppNavigator />
       </NavigationContainer>
-    </LanguageProvider>
+    </LanguageService>
   );
 };
 
