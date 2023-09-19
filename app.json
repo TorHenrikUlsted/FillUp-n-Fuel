@@ -19,7 +19,6 @@
     },
     "android": {
       "versionCode": 2,
-      "versionName": "2.0.0",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
