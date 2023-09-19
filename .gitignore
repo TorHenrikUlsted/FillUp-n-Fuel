@@ -8,6 +8,9 @@ node_modules/
 dist/
 web-build/
 
+# Yarn
+.yarn/
+
 # Native
 *.orig.*
 *.jks
