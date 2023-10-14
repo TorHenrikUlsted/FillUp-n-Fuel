@@ -62,6 +62,11 @@ const DistancePage = () => {
       storageService.saveData("fuelMilage", "0");
       return;
     }
+    
+    let oldFuelMilage = parseFloat(fuelMilage);
+    let newFuelMilage = oldFuelMilage;
+    let newTankSize = tankSize;
+    let newFuelPrice = fuelPrice;
 
     if (oldFuelUnit === "lpk" && newFuelUnit === "mpg") {
       newFuelMilage = 235.215 / oldFuelMilage;
@@ -79,8 +84,8 @@ const DistancePage = () => {
       setFuelPrice(newFuelPrice);
     }
 
-    const numMilage = newFuelMilage.toFixed(1);
-    const numPrice = newFuelPrice.toFixed(2);
+    const numMilage = newFuelMilage ? newFuelMilage.toFixed(1) : "0";
+    const numPrice = newFuelPrice ? newFuelPrice.toFixed(2) : "0";
 
     setFuelMilage(numMilage.toString());
     setTankSize(newTankSize.toString());

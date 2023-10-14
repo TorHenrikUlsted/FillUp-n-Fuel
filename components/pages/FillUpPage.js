@@ -28,7 +28,7 @@ const FillUpPage = () => {
   const [litersNeeded, setLitersNeeded] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [fuelUnit, setFuelUnit] = useState('');
-  const [fuelMilage, setFuelMilage] = useState('');
+  const [fuelMilage, setFuelMilage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -79,9 +79,12 @@ const FillUpPage = () => {
       storageService.saveData("fuelPrice", value);
     }
   };
-  const handleFuelUnit = (oldFuelUnit, newFuelUnit) => {
-    const oldFuelMilage = parseFloat(fuelMilage);
-    let newFuelMilage;
+
+  const handleFuelUnitChange = (oldFuelUnit, newFuelUnit) => {
+    if (oldFuelUnit === "") {
+      return;
+    }
+
     let newTankSize;
     let newFuelPrice;
 
@@ -108,10 +111,7 @@ const FillUpPage = () => {
       console.log(newFuelMilage);
     }
 
-    const numMilage = newFuelMilage.toFixed(1);
     const numPrice = newFuelPrice.toFixed(2);
-
-    setFuelMilage(numMilage.toString());
     setTankSize(newTankSize.toString());
     setFuelUnit(newFuelUnit);
     setFuelPrice(numPrice);
@@ -121,6 +121,37 @@ const FillUpPage = () => {
     storageService.saveData("tankSize", newTankSize);
     storageService.saveData("fuelPrice", numPrice);
   };
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const tankSize = await storageService.getData("tankSize");
+        if (tankSize !== null) {
+          setTankSize(tankSize);
+        }
+        const fuelPrice = await storageService.getData("fuelPrice");
+        if (fuelPrice !== null) {
+          setFuelPrice(fuelPrice);
+        }
+        const currentFuelLevel = await storageService.getData(
+          "currentFuelLevel"
+        );
+        if (currentFuelLevel !== null) {
+          setCurrentFuelLevel(currentFuelLevel);
+        }
+        const fuelUnit = await storageService.getData("fuelUnit");
+        if (fuelUnit !== null) {
+          setFuelUnit(fuelUnit);
+        }
+      } catch (error) {
+        console.error("Error fetching storage data: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getData();
+  }, []);
 
   const handleCalculate = () => {
     // Convert the current fuel level from a fraction to a number
