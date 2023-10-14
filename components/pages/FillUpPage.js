@@ -31,6 +31,80 @@ const FillUpPage = () => {
   const [fuelMilage, setFuelMilage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
+  const handleTankSizeChange = (text) => {
+    const value = parseFloat(text);
+    setTankSize(value);
+    storageService.saveData("tankSize", value);
+  };
+
+  const handleFuelPriceChange = (text) => {
+    const value = parseFloat(text);
+    if (isNaN(value)) {
+      setFuelPrice("");
+    } else {
+      setFuelPrice(value);
+      storageService.saveData("fuelPrice", value);
+    }
+  };
+
+  const handleFuelUnitChange = (oldFuelUnit, newFuelUnit) => {
+    if (oldFuelMilage === "") {
+      setFuelMilage("0");
+      storageService.saveData("fuelMilage", "0");
+      return;
+    }
+
+    let oldFuelMilage = parseFloat(fuelMilage);
+    let newFuelMilage = oldFuelMilage;
+    let newTankSize = tankSize;
+    let newFuelPrice = fuelPrice;
+
+    if (oldFuelUnit === "lpk" && newFuelUnit === "mpg") {
+      newFuelMilage = 235.215 / oldFuelMilage;
+      newTankSize = tankSize * 0.264172;
+      newFuelPrice = fuelPrice * 3.785411784;
+      setFuelMilage(newFuelMilage);
+      setTankSize(newTankSize);
+      setFuelPrice(newFuelPrice);
+    } else if (oldFuelUnit === "mpg" && newFuelUnit === "lpk") {
+      newFuelMilage = 235.215 / oldFuelMilage;
+      newTankSize = Math.round(tankSize * 3.785411784);
+      newFuelPrice = fuelPrice / 3.785411784;
+      setFuelMilage(newFuelMilage);
+      setTankSize(newTankSize);
+      setFuelPrice(newFuelPrice);
+    }
+
+    const numMilage = newFuelMilage ? newFuelMilage.toFixed(1) : "0";
+    const numPrice = newFuelPrice ? newFuelPrice.toFixed(2) : "0";
+
+    setFuelMilage(numMilage.toString());
+    setTankSize(newTankSize.toString());
+    setFuelUnit(newFuelUnit);
+    setFuelPrice(numPrice);
+
+    storageService.saveData("fuelUnit", newFuelUnit);
+    storageService.saveData("fuelMilage", numMilage);
+    storageService.saveData("tankSize", newTankSize);
+    storageService.saveData("fuelPrice", numPrice);
+  };
+
+  const handleCalculate = () => {
+    // Convert the current fuel level from a fraction to a number
+    const [numerator, _, denominator] = currentFuelLevel;
+    let currentFuelLevelInLiters;
+    if (denominator === 0) {
+      currentFuelLevelInLiters = 0;
+    } else {
+      currentFuelLevelInLiters = (numerator / denominator) * tankSize;
+    }
+    const cost = (tankSize - currentFuelLevelInLiters) * fuelPrice;
+
+    setCost(cost);
+    setLitersNeeded(tankSize - currentFuelLevelInLiters);
+    setIsModalVisible(true);
+  };
+
   useEffect(() => {
     const getData = async () => {
       try {
@@ -64,111 +138,6 @@ const FillUpPage = () => {
     getData();
   }, []);
 
-  const handleTankSizeChange = (text) => {
-    const value = parseFloat(text);
-    setTankSize(value);
-    storageService.saveData("tankSize", value);
-  };
-
-  const handleFuelPriceChange = (text) => {
-    const value = parseFloat(text);
-    if (isNaN(value)) {
-      setFuelPrice("");
-    } else {
-      setFuelPrice(value);
-      storageService.saveData("fuelPrice", value);
-    }
-  };
-
-  const handleFuelUnitChange = (oldFuelUnit, newFuelUnit) => {
-    if (oldFuelUnit === "") {
-      return;
-    }
-
-    let newTankSize;
-    let newFuelPrice;
-
-    if (oldFuelMilage === "") {
-      setFuelMilage("0");
-      storageService.saveData("fuelMilage", "0");
-      return;
-    }
-
-    if (oldFuelUnit === "lpk" && newFuelUnit === "mpg") {
-      newFuelMilage = 235.215 / oldFuelMilage;
-      newTankSize = tankSize * 0.264172;
-      newFuelPrice = fuelPrice * 3.785411784;
-      setFuelMilage(newFuelMilage);
-      setTankSize(newTankSize);
-      setFuelPrice(newFuelPrice);
-    } else if (oldFuelUnit === "mpg" && newFuelUnit === "lpk") {
-      newFuelMilage = 235.215 / oldFuelMilage;
-      newTankSize = Math.round(tankSize * 3.785411784);
-      newFuelPrice = fuelPrice / 3.785411784;
-      setFuelMilage(newFuelMilage);
-      setTankSize(newTankSize);
-      setFuelPrice(newFuelPrice);
-      console.log(newFuelMilage);
-    }
-
-    const numPrice = newFuelPrice.toFixed(2);
-    setTankSize(newTankSize.toString());
-    setFuelUnit(newFuelUnit);
-    setFuelPrice(numPrice);
-
-    storageService.saveData("fuelUnit", newFuelUnit);
-    storageService.saveData("fuelMilage", numMilage);
-    storageService.saveData("tankSize", newTankSize);
-    storageService.saveData("fuelPrice", numPrice);
-  };
-
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const tankSize = await storageService.getData("tankSize");
-        if (tankSize !== null) {
-          setTankSize(tankSize);
-        }
-        const fuelPrice = await storageService.getData("fuelPrice");
-        if (fuelPrice !== null) {
-          setFuelPrice(fuelPrice);
-        }
-        const currentFuelLevel = await storageService.getData(
-          "currentFuelLevel"
-        );
-        if (currentFuelLevel !== null) {
-          setCurrentFuelLevel(currentFuelLevel);
-        }
-        const fuelUnit = await storageService.getData("fuelUnit");
-        if (fuelUnit !== null) {
-          setFuelUnit(fuelUnit);
-        }
-      } catch (error) {
-        console.error("Error fetching storage data: ", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getData();
-  }, []);
-
-  const handleCalculate = () => {
-    // Convert the current fuel level from a fraction to a number
-    const [numerator, _, denominator] = currentFuelLevel;
-    let currentFuelLevelInLiters;
-    if (denominator === 0) {
-      currentFuelLevelInLiters = 0;
-    } else {
-      currentFuelLevelInLiters = (numerator / denominator) * tankSize;
-    }
-    const cost = (tankSize - currentFuelLevelInLiters) * fuelPrice;
-
-    setCost(cost);
-    setLitersNeeded(tankSize - currentFuelLevelInLiters);
-    setIsModalVisible(true);
-  };
-
   if (isLoading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   } else {
@@ -182,7 +151,7 @@ const FillUpPage = () => {
             <FuelPicker
               selectedValue={fuelUnit}
               onValueChange={(newFuelUnit) => {
-                handleFuelUnit(fuelUnit, newFuelUnit);
+                handleFuelUnitChange(fuelUnit, newFuelUnit);
               }}
             ></FuelPicker>
             <View style={styles.grid}>
