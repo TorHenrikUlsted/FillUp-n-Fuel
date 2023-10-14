@@ -27,9 +27,42 @@ const FillUpPage = () => {
   const [cost, setCost] = useState(0);
   const [litersNeeded, setLitersNeeded] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [fuelUnit, setFuelUnit] = useState("");
+  const [fuelUnit, setFuelUnit] = useState('');
   const [fuelMilage, setFuelMilage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const tankSize = await storageService.getData("tankSize");
+        if (tankSize !== null) {
+          setTankSize(tankSize);
+        }
+        const fuelPrice = await storageService.getData("fuelPrice");
+        if (fuelPrice !== null) {
+          setFuelPrice(fuelPrice);
+        }
+        const currentFuelLevel = await storageService.getData("currentFuelLevel");
+        if (currentFuelLevel !== null) {
+          setCurrentFuelLevel(currentFuelLevel);
+        }
+        const fuelUnit = await storageService.getData("fuelUnit");
+        if (fuelUnit !== null) {
+          setFuelUnit(fuelUnit);
+        }
+        const fuelMilage = await storageService.getData("fuelMilage");
+        if (fuelMilage !== null) {
+          setFuelMilage(fuelMilage);
+        }
+      } catch (error) {
+        console.error("Error fetching storage data: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getData();
+  }, []);
 
   const handleTankSizeChange = (text) => {
     const value = parseFloat(text);
@@ -47,17 +80,19 @@ const FillUpPage = () => {
     }
   };
 
-  const handleFuelUnit = (oldFuelUnit, newFuelUnit) => {
+  const handleFuelUnitChange = (oldFuelUnit, newFuelUnit) => {
+    if (oldFuelUnit === "") {
+      return;
+    }
+
+    let newTankSize;
+    let newFuelPrice;
+
     if (oldFuelMilage === "") {
       setFuelMilage("0");
       storageService.saveData("fuelMilage", "0");
       return;
     }
-
-    let oldFuelMilage = parseFloat(fuelMilage);
-    let newFuelMilage = oldFuelMilage;
-    let newTankSize;
-    let newFuelPrice;
 
     if (oldFuelUnit === "lpk" && newFuelUnit === "mpg") {
       newFuelMilage = 235.215 / oldFuelMilage;
@@ -73,12 +108,10 @@ const FillUpPage = () => {
       setFuelMilage(newFuelMilage);
       setTankSize(newTankSize);
       setFuelPrice(newFuelPrice);
+      console.log(newFuelMilage);
     }
 
-    const numMilage = newFuelMilage ? newFuelMilage.toFixed(1) : "0";
-    const numPrice = newFuelPrice ? newFuelPrice.toFixed(2) : "0";
-
-    setFuelMilage(numMilage.toString());
+    const numPrice = newFuelPrice.toFixed(2);
     setTankSize(newTankSize.toString());
     setFuelUnit(newFuelUnit);
     setFuelPrice(numPrice);
@@ -109,10 +142,6 @@ const FillUpPage = () => {
         const fuelUnit = await storageService.getData("fuelUnit");
         if (fuelUnit !== null) {
           setFuelUnit(fuelUnit);
-        }
-        const fuelMilage = await storageService.getData("fuelMilage");
-        if (fuelMilage !== null) {
-          setFuelMilage(parseFloat(fuelMilage));
         }
       } catch (error) {
         console.error("Error fetching storage data: ", error);
