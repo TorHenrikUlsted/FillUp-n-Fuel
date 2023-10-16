@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-  TouchableWithoutFeedback,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, ActivityIndicator } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DistanceModal from "../organisms/modal/DistanceModal";
 import { useLanguage } from "../../utils/LanguageService";
@@ -17,26 +7,30 @@ import BackButton from "../atoms/button/BackButton";
 import CalculateButton from "../atoms/button/CalculateButton";
 import storageService from "../../utils/StorageService";
 import FuelPicker from "../atoms/picker/FuelPicker";
+import { useDebouncedStorage } from "../atoms/handle/useDebouncedStorage";
+import handleFuelUnit from "../atoms/handle/handleFuelUnit";
 
 const DistancePage = () => {
   const { language, translations } = useLanguage();
-  const [distanceUnit, setDistanceUnit] = useState("km");
-  const [distance, setDistance] = useState(0);
-  const [tankSize, setTankSize] = useState(0);
-  const [fuelPrice, setFuelPrice] = useState(0);
-  const [fuelUnit, setFuelUnit] = useState("lpk");
-  const [fuelMilage, setFuelMilage] = useState(0);
-  const [extra, setExtra] = useState(0);
+  const [distanceUnit, setDistanceUnit, saveDistanceUnitNow] = useDebouncedStorage("distanceUnit", "");
+  const [distance, setDistance, saveDistanceNow] = useDebouncedStorage("distanceNumber", "");
+  const [tankSize, setTankSize, saveTankSizeNow] = useDebouncedStorage("tankSize", "");
+  const [fuelPrice, setFuelPrice, saveFuelPriceNow] = useDebouncedStorage("fuelPrice", "");
+  const [fuelUnit, setFuelUnit, saveFuelUnitNow] = useDebouncedStorage("fuelUnit", "");
+  const [fuelMilage, setFuelMilage, saveFuelMilageNow] = useDebouncedStorage("fuelMilage", "");
+  const [extra, setExtra, setExtraNow] = useDebouncedStorage("DistanceExtra", "");
   const [modalVisible, setModalVisible] = useState(false);
-  const [cost, setCost] = useState(0);
   const [refillMessage, setRefillMessage] = useState("");
   const [costPerUnit, setCostPerUnit] = useState(0);
   const [costOneWay, setCostOneWay] = useState(0);
   const [costBothWays, setCostBothWays] = useState(0);
   const [distancePerTank, setDistancePerTank] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [calculationDone, setCalculationDone] = useState(false);
 
   const handleDistanceUnit = (itemValue) => {
+    setIsCalculating(true);
     let newDistance;
     if (itemValue === "mi" && distanceUnit === "km") {
       newDistance = parseFloat(distance * 0.621371).toFixed(1);
@@ -45,55 +39,25 @@ const DistancePage = () => {
     }
 
     setDistance(newDistance);
-    storageService.saveData("distanceNumber", newDistance);
-
     setDistanceUnit(itemValue);
-    storageService.saveData("distanceUnit", itemValue);
+
+    setIsCalculating(false);
   };
 
-  const handleFuelUnit = (oldFuelUnit, newFuelUnit) => {
-    if (oldFuelMilage === "") {
-      setFuelMilage("0");
-      storageService.saveData("fuelMilage", "0");
-      return;
-    }
-    
-    let oldFuelMilage = parseFloat(fuelMilage);
-    let newFuelMilage = oldFuelMilage;
-    let newTankSize = tankSize;
-    let newFuelPrice = fuelPrice;
+  const handleCalculate = async () => {
+    setIsCalculating(true);
 
-    if (oldFuelUnit === "lpk" && newFuelUnit === "mpg") {
-      newFuelMilage = 235.215 / oldFuelMilage;
-      newTankSize = tankSize * 0.264172;
-      newFuelPrice = fuelPrice * 3.785411784;
-      setFuelMilage(newFuelMilage);
-      setTankSize(newTankSize);
-      setFuelPrice(newFuelPrice);
-    } else if (oldFuelUnit === "mpg" && newFuelUnit === "lpk") {
-      newFuelMilage = 235.215 / oldFuelMilage;
-      newTankSize = Math.round(tankSize * 3.785411784);
-      newFuelPrice = fuelPrice / 3.785411784;
-      setFuelMilage(newFuelMilage);
-      setTankSize(newTankSize);
-      setFuelPrice(newFuelPrice);
-    }
+    const [distanceUnit, distance, tankSize, fuelPrice, fuelUnit, fuelMilage, extra] = await Promise.all([
+      saveDistanceUnitNow(),
+      saveDistanceNow(),
+      saveTankSizeNow(),
+      saveFuelPriceNow(),
+      saveFuelUnitNow(),
+      saveFuelMilageNow(),
+      setExtraNow()
+    ]);
+  
 
-    const numMilage = newFuelMilage ? newFuelMilage.toFixed(1) : "0";
-    const numPrice = newFuelPrice ? newFuelPrice.toFixed(2) : "0";
-
-    setFuelMilage(numMilage.toString());
-    setTankSize(newTankSize.toString());
-    setFuelUnit(newFuelUnit);
-    setFuelPrice(numPrice);
-
-    storageService.saveData("fuelUnit", newFuelUnit);
-    storageService.saveData("fuelMilage", numMilage);
-    storageService.saveData("tankSize", newTankSize);
-    storageService.saveData("fuelPrice", numPrice);
-  };
-
-  const handleCalculate = () => {
     let distanceNum = parseFloat(distance);
     let fuelMilageNum = parseFloat(fuelMilage);
     let fuelPriceNum = parseFloat(fuelPrice);
@@ -161,8 +125,15 @@ const DistancePage = () => {
       setRefillMessage(`${translations.noRefillOnTheWay}`);
     } else setRefillMessage(`${translations.tankSizeRequired}`);
 
-    setModalVisible(true);
+    setCalculationDone(true);
   };
+
+  useEffect(() => {
+    if (calculationDone) {
+      setIsCalculating(false);
+      setModalVisible(true);
+    }
+  }, [calculationDone]);
 
   useEffect(() => {
     const getData = async () => {
@@ -211,7 +182,10 @@ const DistancePage = () => {
           <View style={styles.inner}>
             <DistanceModal
               visible={modalVisible}
-              onClose={() => setModalVisible(false)}
+              onClose={() => {
+                setModalVisible(false); 
+                setCalculationDone(false);
+              }}
               distance={distance}
               costPerUnit={costPerUnit}
               costOneWay={costOneWay}
@@ -227,9 +201,7 @@ const DistancePage = () => {
               <Text style={styles.headerText}>{translations.typeIn}</Text>
               <Picker
                 selectedValue={distanceUnit}
-                onValueChange={(itemValue) => {
-                  handleDistanceUnit(itemValue);
-                }}
+                onValueChange={handleDistanceUnit}
                 style={styles.picker}
               >
                 <Picker.Item label={translations.kilometers} value="km" />
@@ -239,19 +211,23 @@ const DistancePage = () => {
             <TextInput
               keyboardType="numeric"
               value={distance ? distance.toString() : ""}
-              onChangeText={(text) => {
-                setDistance(text);
-                storageService.saveData("distanceNumber", text);
-              }}
+              onChangeText={setDistance}
               placeholder={`${translations.enterDistance} ${distanceUnit}`}
               style={styles.input}
             />
 
-            <CalculateButton onPress={handleCalculate} />
+            {isCalculating ? (
+              <View style={{ padding: 27 }}>
+                <ActivityIndicator size="large" color="#a8bfad" />
+              </View>
+            ) : (
+              <CalculateButton onPress={handleCalculate} />
+            )}
+
             <FuelPicker
               selectedValue={fuelUnit}
               onValueChange={(newFuelUnit) => {
-                handleFuelUnit(fuelUnit, newFuelUnit);
+                handleFuelUnit(fuelUnit, newFuelUnit, fuelMilage, tankSize, fuelPrice, setFuelMilage, setTankSize, setFuelPrice, setFuelUnit, setIsCalculating);
               }}
             ></FuelPicker>
 
@@ -263,10 +239,7 @@ const DistancePage = () => {
                 <TextInput
                   keyboardType="numeric"
                   value={tankSize ? tankSize.toString() : ""}
-                  onChangeText={(text) => {
-                    setTankSize(text);
-                    storageService.saveData("tankSize", text);
-                  }}
+                  onChangeText={setTankSize}
                   placeholder={translations.enterTankSize}
                   style={styles.input}
                 />
@@ -278,10 +251,7 @@ const DistancePage = () => {
                 <TextInput
                   keyboardType="numeric"
                   value={fuelPrice ? fuelPrice.toString() : ""}
-                  onChangeText={(text) => {
-                    setFuelPrice(text);
-                    storageService.saveData("fuelPrice", text);
-                  }}
+                  onChangeText={setFuelPrice}
                   placeholder={translations.enterFuelPrice}
                   style={styles.input}
                 />
@@ -297,10 +267,7 @@ const DistancePage = () => {
                 <TextInput
                   keyboardType="numeric"
                   value={fuelMilage ? fuelMilage.toString() : ""}
-                  onChangeText={(text) => {
-                    setFuelMilage(text);
-                    storageService.saveData("fuelMilage", text);
-                  }}
+                  onChangeText={setFuelMilage}
                   placeholder={`${translations.fuelEfficiency}`}
                   style={styles.input}
                 />
@@ -310,10 +277,7 @@ const DistancePage = () => {
                 <TextInput
                   keyboardType="numeric"
                   value={extra ? extra.toString() : ""}
-                  onChangeText={(text) => {
-                    setExtra(text);
-                    storageService.saveData("DistanceExtra", text);
-                  }}
+                  onChangeText={setExtra}
                   placeholder={`${translations.enterExtraFees}`}
                   style={styles.input}
                 />

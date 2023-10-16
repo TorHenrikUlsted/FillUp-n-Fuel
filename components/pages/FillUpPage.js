@@ -1,15 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Keyboard,
-  TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-} from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, ActivityIndicator } from "react-native";
 import storageService from "../../utils/StorageService";
 import { useLanguage } from "../../utils/LanguageService";
 import Gauge from "../molecules/gauge/Gauge";
@@ -18,78 +8,47 @@ import FuelPicker from "../atoms/picker/FuelPicker";
 import BackButton from "../atoms/button/BackButton";
 import CalculateButton from "../atoms/button/CalculateButton";
 import FillUpModal from "../organisms/modal/FillUpModal";
+import handleFuelUnit from "../atoms/handle/handleFuelUnit";
+import { useDebouncedStorage } from "../atoms/handle/useDebouncedStorage";
 
 const FillUpPage = () => {
   const { translations } = useLanguage();
-  const [tankSize, setTankSize] = useState(0);
-  const [fuelPrice, setFuelPrice] = useState(0);
-  const [currentFuelLevel, setCurrentFuelLevel] = useState([1, "/", 2]);
+  const [tankSize, setTankSize, saveTankSizeNow] = useDebouncedStorage("tankSize", "");
+  const [fuelPrice, setFuelPrice, saveFuelPriceNow] = useDebouncedStorage("fuelPrice", "");
+  const [currentFuelLevel, setCurrentFuelLevel, saveCurrentFuelLevelNow] = useDebouncedStorage("currentFuelLevel", [1, "/", 2]);
   const [cost, setCost] = useState(0);
+  const prevCostRef = useRef(1);
   const [litersNeeded, setLitersNeeded] = useState(0);
+  const prevLitersNeededRef = useRef(1);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [fuelUnit, setFuelUnit] = useState('');
   const [fuelMilage, setFuelMilage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [calculationDone, setCalculationDone] = useState(false);
 
-  const handleTankSizeChange = (text) => {
-    const value = parseFloat(text);
-    setTankSize(value);
-    storageService.saveData("tankSize", value);
-  };
-
-  const handleFuelPriceChange = (text) => {
-    const value = parseFloat(text);
-    if (isNaN(value)) {
-      setFuelPrice("");
-    } else {
-      setFuelPrice(value);
-      storageService.saveData("fuelPrice", value);
+  useEffect(() => {
+    if (calculationDone) {
+      if (cost !== prevCostRef.current || litersNeeded !== prevLitersNeededRef.current) {
+        setIsModalVisible(true);
+      }
+  
+      prevCostRef.current = cost;
+      prevLitersNeededRef.current = litersNeeded;
     }
-  };
+  }, [calculationDone, cost, litersNeeded]);
 
-  const handleFuelUnitChange = (oldFuelUnit, newFuelUnit) => {
-    if (oldFuelMilage === "") {
-      setFuelMilage("0");
-      storageService.saveData("fuelMilage", "0");
-      return;
-    }
 
-    let oldFuelMilage = parseFloat(fuelMilage);
-    let newFuelMilage = oldFuelMilage;
-    let newTankSize = tankSize;
-    let newFuelPrice = fuelPrice;
 
-    if (oldFuelUnit === "lpk" && newFuelUnit === "mpg") {
-      newFuelMilage = 235.215 / oldFuelMilage;
-      newTankSize = tankSize * 0.264172;
-      newFuelPrice = fuelPrice * 3.785411784;
-      setFuelMilage(newFuelMilage);
-      setTankSize(newTankSize);
-      setFuelPrice(newFuelPrice);
-    } else if (oldFuelUnit === "mpg" && newFuelUnit === "lpk") {
-      newFuelMilage = 235.215 / oldFuelMilage;
-      newTankSize = Math.round(tankSize * 3.785411784);
-      newFuelPrice = fuelPrice / 3.785411784;
-      setFuelMilage(newFuelMilage);
-      setTankSize(newTankSize);
-      setFuelPrice(newFuelPrice);
-    }
+  const handleCalculate = async () => {
+    setIsCalculating(true);
+    // Wait for the updated values
+    const [currentFuelLevel, tankSize, fuelPrice] = await Promise.all([
+      saveCurrentFuelLevelNow(),
+      saveTankSizeNow(),
+      saveFuelPriceNow()
+    ]);
 
-    const numMilage = newFuelMilage ? newFuelMilage.toFixed(1) : "0";
-    const numPrice = newFuelPrice ? newFuelPrice.toFixed(2) : "0";
-
-    setFuelMilage(numMilage.toString());
-    setTankSize(newTankSize.toString());
-    setFuelUnit(newFuelUnit);
-    setFuelPrice(numPrice);
-
-    storageService.saveData("fuelUnit", newFuelUnit);
-    storageService.saveData("fuelMilage", numMilage);
-    storageService.saveData("tankSize", newTankSize);
-    storageService.saveData("fuelPrice", numPrice);
-  };
-
-  const handleCalculate = () => {
     // Convert the current fuel level from a fraction to a number
     const [numerator, _, denominator] = currentFuelLevel;
     let currentFuelLevelInLiters;
@@ -102,8 +61,15 @@ const FillUpPage = () => {
 
     setCost(cost);
     setLitersNeeded(tankSize - currentFuelLevelInLiters);
-    setIsModalVisible(true);
+    setCalculationDone(true);
   };
+
+  useEffect(() => {
+    if (calculationDone) {
+      setIsCalculating(false);
+      setIsModalVisible(true);
+    }
+  }, [calculationDone]);
 
   useEffect(() => {
     const getData = async () => {
@@ -151,7 +117,7 @@ const FillUpPage = () => {
             <FuelPicker
               selectedValue={fuelUnit}
               onValueChange={(newFuelUnit) => {
-                handleFuelUnitChange(fuelUnit, newFuelUnit);
+                handleFuelUnit(fuelUnit, newFuelUnit, fuelMilage, tankSize, fuelPrice, setFuelMilage, setTankSize, setFuelPrice, setFuelUnit, setIsCalculating);
               }}
             ></FuelPicker>
             <View style={styles.grid}>
@@ -161,7 +127,7 @@ const FillUpPage = () => {
                   keyboardType="numeric"
                   style={styles.input}
                   value={tankSize ? tankSize.toString() : ""}
-                  onChangeText={handleTankSizeChange}
+                  onChangeText={setTankSize}
                 />
               </View>
               <View style={styles.gridItem}>
@@ -170,7 +136,8 @@ const FillUpPage = () => {
                   keyboardType="numeric"
                   style={styles.input}
                   value={fuelPrice ? fuelPrice.toString() : ""}
-                  onChangeText={handleFuelPriceChange}
+                  onChangeText={setFuelPrice}
+                  placeholder={translations.enterFuelPrice}
                 />
               </View>
             </View>
@@ -180,14 +147,19 @@ const FillUpPage = () => {
                 size={300}
                 strokeWidth={10}
                 strokeColor="#000"
-                onFuelLevelChange={(fuelLevel) => {
-                  setCurrentFuelLevel(fuelLevel);
-                  storageService.saveData("currentFuelLevel", currentFuelLevel);
-                }}
+                onFuelLevelChange={setCurrentFuelLevel}
+                setIsCalculating={setIsCalculating}
               />
             </View>
 
-            <CalculateButton onPress={handleCalculate} />
+            {isCalculating ? (
+              <View style={{ padding: 27 }}>
+                <ActivityIndicator size="large" color="#a8bfad" />
+              </View>
+            ) : (
+              <CalculateButton onPress={handleCalculate} />
+            )}
+
             <Spacer h={10} w={10} />
             <BackButton />
 
@@ -196,7 +168,10 @@ const FillUpPage = () => {
               cost={cost}
               litersNeeded={litersNeeded}
               fuelUnit={fuelUnit}
-              onClose={() => setIsModalVisible(false)}
+              onClose={() => {
+                setIsModalVisible(false); 
+                setCalculationDone(false);
+              }}
             />
           </View>
         </TouchableWithoutFeedback>

@@ -2,11 +2,16 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useLanguage } from '../../../utils/LanguageService';
 
-const CalculateButton = ({ onPress }) => {
+
+const CalculateButton = ({ isUpdating, onPress }) => {
     const { language, translations } = useLanguage();
   return (
-    <TouchableOpacity onPress={onPress} style={styles.button}>
-        <Text style={styles.text}>{translations.calculate}</Text>
+    <TouchableOpacity 
+      disabled={isUpdating} 
+      onPress={onPress} 
+      style={styles.button}
+    >
+      <Text style={styles.text}>{translations.calculate}</Text>
     </TouchableOpacity>
   );
 };

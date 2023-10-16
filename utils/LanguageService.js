@@ -1,5 +1,5 @@
 import React, { useState, createContext, useContext, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import storageService from "./StorageService";
 import en from "./lang/en";
 import no from "./lang/no";
@@ -38,8 +38,7 @@ export const LanguageService = ({ children }) => {
   };
 
   if (loading) {
-    console.log("loading...");
-    return;
+    return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
   return (
@@ -73,8 +72,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   flagText: {
-    fontSize: 21,
+    fontSize: 28,
     marginHorizontal: 10,
-    marginTop: 40,
+    marginTop: 44,
   },
 });
