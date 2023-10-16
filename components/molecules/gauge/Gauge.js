@@ -4,18 +4,34 @@ import Svg, { Path, Line } from "react-native-svg";
 import LeftArrowButton from "../../atoms/button/LeftArrowButton";
 import RightArrowButton from "../../atoms/button/RightArrowButton";
 
-const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange }) => {
+const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange, setIsCalculating }) => {
   const numLines = 16;
   const [angle, setAngle] = useState(-90);
   const [lineIndex, setLineIndex] = useState(numLines / 2);
+  const [debouncedLineIndex, setDebouncedLineIndex] = useState(lineIndex);
 
   useEffect(() => {
-    // Call the onFuelLevelChange function whenever the lineIndex value changes
-    if (onFuelLevelChange) {
-      onFuelLevelChange(getFraction(lineIndex, numLines));
-      //console.log(getFraction(lineIndex, numLines));
-    }
+    setIsCalculating(true)
+    // Debounce the onFuelLevelChange function call
+    const timeoutId = setTimeout(() => {
+      setDebouncedLineIndex(lineIndex);
+      setIsCalculating(false)
+    }, 500); // debounce time is 500ms
+    
+
+    return () => clearTimeout(timeoutId);
+                                          // if useEffect is run again within 500ms
   }, [lineIndex]);
+
+  useEffect(() => {
+    setIsCalculating(true)
+    // Call the onFuelLevelChange function whenever the debouncedLineIndex value changes
+    if (onFuelLevelChange) {
+      onFuelLevelChange(getFraction(debouncedLineIndex, numLines));
+    }
+    
+    setIsCalculating(false)
+  }, [debouncedLineIndex]);
 
   const radius = (size - strokeWidth) / 2;
   const lineLength = 25; // length of longer lines
@@ -67,6 +83,7 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange }) => {
   };
 
   const handlePress = (side) => {
+
     if (side === "left") {
       if (angle > -180) {
         setAngle((prevAngle) => prevAngle - 180 / numLines);
