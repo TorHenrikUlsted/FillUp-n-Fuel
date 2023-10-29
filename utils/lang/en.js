@@ -35,6 +35,16 @@ export default {
   forOneWay: "For one way",
   forBothWays: "For Both ways",
   refill: "Refill",
+  // Infopage
+  info: "Information",
+  appName: "FillUp 'n Fuel",
+  version: "Version",
+  appDescHead: "App Description",
+  appDescBody: "This is a very simple app for fuel cost calculation. It is approximate and may not be accurate.",
+  usageHead: "How to use",
+  usageBody: "Type into the input fields on the different pages. Choose your desired unit and press the calculate button when done.",
+  license: 'License',
+  privacyPolicy: 'Privacy Policy',
   //CalculateButton
   calculate: "Calculate",
   //BackButton
