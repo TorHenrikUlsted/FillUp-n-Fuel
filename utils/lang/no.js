@@ -34,6 +34,16 @@ export default {
   forOneWay: "For en vei",
   forBothWays: "For begge veier",
   refill: "Påfylling",
+  // InfoPage
+  info: "Informasjon",
+  appName: "Drivstoffkalkulator",
+  version: "Versjon",
+  appDescHead: "App Beskrivelse",
+  appDescBody: "Dette er en veldig enkel app for beregning av drivstoffkostnader. Det er omtrentlig og kan være unøyaktig.",
+  usageHead: "Hvordan bruke",
+  usageBody: "Skriv inn i datafeltene på de forskjellige sidene. Velg ønsket enhet og trykk på beregnknappen når du er ferdig.",
+  license: 'Lisens',
+  privacyPolicy: 'Personvern',
   //CalculateButton
   calculate: "Beregn",
   //BackButton

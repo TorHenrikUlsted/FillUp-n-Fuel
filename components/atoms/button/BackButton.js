@@ -5,7 +5,7 @@ import { useLanguage } from '../../../utils/LanguageService';
 
 const BackButton = () => {
   const navigation = useNavigation();
-  const { language, translations } = useLanguage();
+  const { translations } = useLanguage();
 
   const handlePress = () => {
     navigation.navigate('Home')
