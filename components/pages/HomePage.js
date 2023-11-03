@@ -12,6 +12,7 @@ const HomePage = ({ navigation }) => {
 
       <Text style={styles.heading}>{translations.chooseMode}</Text>
       <View style={styles.buttons}>
+
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate("DistancePage")}
@@ -20,11 +21,19 @@ const HomePage = ({ navigation }) => {
             {translations.distanceCalculator}
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate("FillUpPage")}
         >
           <Text style={styles.buttonText}>{translations.fillUpCalculator}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("InfoPage")}
+        >
+          <Text style={styles.buttonText}>{translations.info}</Text>
         </TouchableOpacity>
       </View>
     </View>
