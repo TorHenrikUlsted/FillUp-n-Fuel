@@ -43,6 +43,7 @@ export default {
   appDescBody: "This is a very simple app for fuel cost calculation. It is approximate and may not be accurate.",
   usageHead: "How to use",
   usageBody: "Type into the input fields on the different pages. Choose your desired unit and press the calculate button when done.",
+  email: 'Email',
   license: 'License',
   privacyPolicy: 'Privacy Policy',
   //CalculateButton
