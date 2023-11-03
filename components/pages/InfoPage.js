@@ -36,7 +36,7 @@ const InfoPage = () => {
 
                 <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('mailto:tor.henrik@thuworks.com')}>
                     <Icon name="envelope" size={50} color="#FFF" />
-                    <Text style={styles.iconText}>Email</Text>
+                    <Text style={styles.iconText}>{translations.email}</Text>
                 </TouchableOpacity>
             </View>
 

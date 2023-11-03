@@ -13,16 +13,16 @@ import { useDebouncedStorage } from "../atoms/handle/useDebouncedStorage";
 
 const FillUpPage = () => {
   const { translations } = useLanguage();
-  const [tankSize, setTankSize, saveTankSizeNow] = useDebouncedStorage("tankSize", "");
-  const [fuelPrice, setFuelPrice, saveFuelPriceNow] = useDebouncedStorage("fuelPrice", "");
+  const [tankSize, setTankSize, saveTankSizeNow] = useDebouncedStorage("tankSize", "0");
+  const [fuelPrice, setFuelPrice, saveFuelPriceNow] = useDebouncedStorage("fuelPrice", "0");
   const [currentFuelLevel, setCurrentFuelLevel, saveCurrentFuelLevelNow] = useDebouncedStorage("currentFuelLevel", [1, "/", 2]);
+  const [fuelUnit, setFuelUnit, saveFuelUnitNow] = useDebouncedStorage("fuelUnit", "0");
+  const [fuelMilage, setFuelMilage, saveFuelMilageNow] = useDebouncedStorage("fuelMilage", "0");
   const [cost, setCost] = useState(0);
   const prevCostRef = useRef(1);
   const [litersNeeded, setLitersNeeded] = useState(0);
   const prevLitersNeededRef = useRef(1);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [fuelUnit, setFuelUnit] = useState('');
-  const [fuelMilage, setFuelMilage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationDone, setCalculationDone] = useState(false);
@@ -46,7 +46,9 @@ const FillUpPage = () => {
     const [currentFuelLevel, tankSize, fuelPrice] = await Promise.all([
       saveCurrentFuelLevelNow(),
       saveTankSizeNow(),
-      saveFuelPriceNow()
+      saveFuelPriceNow(),
+      saveFuelUnitNow(),
+      saveFuelMilageNow(),
     ]);
 
     // Convert the current fuel level from a fraction to a number
@@ -75,25 +77,20 @@ const FillUpPage = () => {
     const getData = async () => {
       try {
         const tankSize = await storageService.getData("tankSize");
-        if (tankSize !== null) {
-          setTankSize(tankSize);
-        }
+        setTankSize(tankSize !== null ? tankSize : "0");
+
         const fuelPrice = await storageService.getData("fuelPrice");
-        if (fuelPrice !== null) {
-          setFuelPrice(fuelPrice);
-        }
+        setFuelPrice(fuelPrice !== null ? fuelPrice : "0");
+
         const currentFuelLevel = await storageService.getData("currentFuelLevel");
-        if (currentFuelLevel !== null) {
-          setCurrentFuelLevel(currentFuelLevel);
-        }
+        setCurrentFuelLevel(currentFuelLevel !== null ? currentFuelLevel : [1, "/", 2]);
+
         const fuelUnit = await storageService.getData("fuelUnit");
-        if (fuelUnit !== null) {
-          setFuelUnit(fuelUnit);
-        }
+        setFuelUnit(fuelUnit !== null ? fuelUnit : "lpk");
+
         const fuelMilage = await storageService.getData("fuelMilage");
-        if (fuelMilage !== null) {
-          setFuelMilage(fuelMilage);
-        }
+        setFuelMilage(fuelMilage !== null ? fuelMilage : "0");
+
       } catch (error) {
         console.error("Error fetching storage data: ", error);
       } finally {
@@ -117,7 +114,7 @@ const FillUpPage = () => {
             <FuelPicker
               selectedValue={fuelUnit}
               onValueChange={(newFuelUnit) => {
-                handleFuelUnit(fuelUnit, newFuelUnit, fuelMilage, tankSize, fuelPrice, setFuelMilage, setTankSize, setFuelPrice, setFuelUnit, setIsCalculating);
+                  handleFuelUnit(fuelUnit, newFuelUnit, fuelMilage, tankSize, fuelPrice, setFuelMilage, setTankSize, setFuelPrice, setFuelUnit, setIsCalculating);
               }}
             ></FuelPicker>
             <View style={styles.grid}>
@@ -128,6 +125,7 @@ const FillUpPage = () => {
                   style={styles.input}
                   value={tankSize ? tankSize.toString() : ""}
                   onChangeText={setTankSize}
+                  placeholder={translations.enterTankSize}
                 />
               </View>
               <View style={styles.gridItem}>

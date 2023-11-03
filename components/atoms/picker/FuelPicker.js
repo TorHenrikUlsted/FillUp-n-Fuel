@@ -4,7 +4,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useLanguage } from "../../../utils/LanguageService";
 
 const FuelPicker = ({ selectedValue, onValueChange }) => {
-  const { language, translations } = useLanguage();
+  const { translations } = useLanguage();
 
   return (
     <View style={styles.Container}>

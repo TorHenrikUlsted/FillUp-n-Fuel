@@ -42,6 +42,7 @@ export default {
   appDescBody: "Dette er en veldig enkel app for beregning av drivstoffkostnader. Det er omtrentlig og kan være unøyaktig.",
   usageHead: "Hvordan bruke",
   usageBody: "Skriv inn i datafeltene på de forskjellige sidene. Velg ønsket enhet og trykk på beregnknappen når du er ferdig.",
+  email: 'Epost',
   license: 'Lisens',
   privacyPolicy: 'Personvern',
   //CalculateButton
