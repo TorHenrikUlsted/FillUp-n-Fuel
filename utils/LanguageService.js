@@ -18,6 +18,10 @@ export const LanguageService = ({ children }) => {
         if (savedLanguage) {
           setLanguage(savedLanguage);
           setTranslations(savedLanguage === "en" ? en : no);
+        } else {
+          const defaultLanguage = "en";
+          setLanguage(defaultLanguage);
+          setTranslations(defaultLanguage === "en" ? en : no);
         }
         setLoading(false);
       } catch (error) {
@@ -72,8 +76,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   flagText: {
-    fontSize: 28,
+    fontSize: 30,
     marginHorizontal: 10,
-    marginTop: 44,
   },
 });
