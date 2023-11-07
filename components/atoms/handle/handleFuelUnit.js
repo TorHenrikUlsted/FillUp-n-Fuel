@@ -41,8 +41,9 @@ const handleFuelUnit = (oldFuelUnit, newFuelUnit, fuelMilage, tankSize, fuelPric
       }
     }
   
-    const numMilage = newFuelMilage ? newFuelMilage.toFixed(1) : "0";
+    const numMilage = newFuelMilage ? newFuelMilage.toFixed(2) : "0";
     const numPrice = newFuelPrice ? newFuelPrice.toFixed(2) : "0";
+    newTankSize = newTankSize ? newTankSize.toFixed(2) : "0";
   
     setFuelMilage(numMilage.toString());
     setTankSize(newTankSize.toString());
