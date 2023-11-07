@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, StyleSheet, Keyboard, ActivityIndicator } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DistanceModal from "../organisms/modal/DistanceModal";
 import { useLanguage } from "../../utils/LanguageService";
@@ -9,6 +9,7 @@ import storageService from "../../utils/StorageService";
 import FuelPicker from "../atoms/picker/FuelPicker";
 import { useDebouncedStorage } from "../atoms/handle/useDebouncedStorage";
 import handleFuelUnit from "../atoms/handle/handleFuelUnit";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const DistancePage = () => {
   const { language, translations } = useLanguage();
@@ -21,17 +22,19 @@ const DistancePage = () => {
   const [extra, setExtra, setExtraNow] = useDebouncedStorage("DistanceExtra", "");
   const [modalVisible, setModalVisible] = useState(false);
   const [refillMessage, setRefillMessage] = useState("");
-  const [costPerUnit, setCostPerUnit] = useState(0);
-  const [costOneWay, setCostOneWay] = useState(0);
-  const [costBothWays, setCostBothWays] = useState(0);
-  const [distancePerTank, setDistancePerTank] = useState(0);
+  const [costPerUnit, setCostPerUnit] = useState("");
+  const [costOneWay, setCostOneWay] = useState("");
+  const [costBothWays, setCostBothWays] = useState("");
+  const [distancePerTank, setDistancePerTank] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationDone, setCalculationDone] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const handleDistanceUnit = (itemValue) => {
     setIsCalculating(true);
     let newDistance;
+
     if (itemValue === "mi" && distanceUnit === "km") {
       newDistance = parseFloat(distance * 0.621371).toFixed(1);
     } else if (itemValue === "km" && distanceUnit === "mi") {
@@ -56,38 +59,28 @@ const DistancePage = () => {
       saveFuelMilageNow(),
       setExtraNow()
     ]);
-  
 
-    let distanceNum = parseFloat(distance);
-    let fuelMilageNum = parseFloat(fuelMilage);
-    let fuelPriceNum = parseFloat(fuelPrice);
-    let tankSizeNum = parseFloat(tankSize);
-    let extraNum = parseFloat(extra);
+
+    let distanceNum = distance ? parseFloat(distance) : 0;
+    let fuelMilageNum = fuelMilage ? parseFloat(fuelMilage) : 0;
+    let fuelPriceNum = fuelPrice ? parseFloat(fuelPrice) : 0;
+    let tankSizeNum = tankSize ? parseFloat(tankSize) : 0;
+    let extraNum = extra ? parseFloat(extra) : 0;
+    let dpt, cpk, cpm, cow, cow2;
 
     if (distanceUnit === "km") {
       if (fuelUnit === "lpk") {
-        const dpt = (tankSizeNum / fuelMilageNum) * 100;
-        const cpk = (fuelPriceNum * tankSize) / dpt;
-        const cow = distanceNum * cpk + extraNum;
-        const cow2 = cow * 2;
-
-        setDistancePerTank(dpt);
-        setCostPerUnit(cpk);
-        setCostOneWay(cow);
-        setCostBothWays(cow2);
+        dpt = (tankSizeNum / fuelMilageNum) * 100;
+        cpk = (fuelPriceNum * tankSize) / dpt;
+        cow = distanceNum * cpk + extraNum;
+        cow2 = cow * 2;
       } else if (fuelUnit === "mpg") {
         const kpg = fuelMilageNum * 1.60934; //convert to km
-        //const kpl = (kpg / 3.78541); //convert to liter
         const fn = distanceNum / kpg;
-        const dpt = tankSizeNum * kpg;
-        const cpk = fuelPriceNum / kpg;
-        const cow = fn * fuelPrice + extraNum;
-        const cow2 = cow * 2;
-
-        setDistancePerTank(dpt);
-        setCostPerUnit(cpk);
-        setCostOneWay(cow);
-        setCostBothWays(cow2);
+        dpt = tankSizeNum * kpg;
+        cpk = fuelPriceNum / kpg;
+        cow = fn * fuelPrice + extraNum;
+        cow2 = cow * 2;
       }
     }
 
@@ -95,33 +88,28 @@ const DistancePage = () => {
       if (fuelUnit === "lpk") {
         const lp1k = fuelMilageNum / 100;
         const lp1mi = lp1k * 1.60934;
-        const dpt = tankSizeNum / lp1mi;
-        const cpm = (fuelPriceNum * tankSize) / dpt;
-        const cow = distanceNum * cpm + extraNum;
-        const cow2 = cow * 2;
-
-        setDistancePerTank(dpt);
-        setCostPerUnit(cpm);
-        setCostOneWay(cow);
-        setCostBothWays(cow2);
+        dpt = tankSizeNum / lp1mi;
+        cpm = (fuelPriceNum * tankSize) / dpt;
+        cow = distanceNum * cpm + extraNum;
+        cow2 = cow * 2;
       } else if (fuelUnit === "mpg") {
-        const dpt = tankSizeNum * fuelMilageNum;
+        dpt = tankSizeNum * fuelMilageNum;
         const fn = distanceNum / fuelMilageNum;
-        const cpm = fuelPriceNum / fuelMilageNum;
-        const cow = fn * fuelPriceNum + extraNum;
-        const cow2 = cow * 2;
-
-        setDistancePerTank(dpt);
-        setCostPerUnit(cpm);
-        setCostOneWay(cow);
-        setCostBothWays(cow2);
+        cpm = fuelPriceNum / fuelMilageNum;
+        cow = fn * fuelPriceNum + extraNum;
+        cow2 = cow * 2;
       }
     }
 
+    setDistancePerTank(dpt);
+    setCostPerUnit(cpk || cpm);
+    setCostOneWay(cow);
+    setCostBothWays(cow2);
+
     // Check if refilling is necessary
-    if (distanceNum > distancePerTank) {
+    if (distanceNum >= distancePerTank) {
       setRefillMessage(`${translations.refillOnTheWay}`);
-    } else if (distanceNum <= distancePerTank) {
+    } else if (distanceNum < distancePerTank) {
       setRefillMessage(`${translations.noRefillOnTheWay}`);
     } else setRefillMessage(`${translations.tankSizeRequired}`);
 
@@ -137,66 +125,83 @@ const DistancePage = () => {
 
   useEffect(() => {
     const getData = async () => {
-      const distanceUnit = await storageService.getData("distanceUnit");
-      if (distanceUnit !== null) {
-        setDistanceUnit(distanceUnit);
+      try {
+        const distanceUnit = await storageService.getData("distanceUnit");
+        setDistanceUnit(distanceUnit || "km");
+
+        const distanceNumber = await storageService.getData("distanceNumber");
+        setDistance(distanceNumber || "");
+
+        const tankSize = await storageService.getData("tankSize");
+        setTankSize(tankSize || "");
+
+        const fuelPrice = await storageService.getData("fuelPrice");
+        setFuelPrice(fuelPrice || "");
+
+        const fuelUnit = await storageService.getData("fuelUnit");
+        setFuelUnit(fuelUnit || "lpk");
+
+        const fuelMilage = await storageService.getData("fuelMilage");
+        setFuelMilage(fuelMilage || "");
+
+        const DistanceExtra = await storageService.getData("DistanceExtra");
+        setExtra(DistanceExtra || "");
+      } catch (error) {
+        console.error("Error fetching storage data: ", error);
+      } finally {
+        setIsLoading(false);
       }
-      const distanceNumber = await storageService.getData("distanceNumber");
-      if (distanceNumber !== null) {
-        setDistance(parseFloat(distanceNumber));
-      }
-      const tankSize = await storageService.getData("tankSize");
-      if (tankSize !== null) {
-        setTankSize(tankSize);
-      }
-      const fuelPrice = await storageService.getData("fuelPrice");
-      if (fuelPrice !== null) {
-        setFuelPrice(fuelPrice);
-      }
-      const fuelUnit = await storageService.getData("fuelUnit");
-      if (fuelUnit !== null) {
-        setFuelUnit(fuelUnit);
-      }
-      const fuelMilage = await storageService.getData("fuelMilage");
-      if (fuelMilage !== null) {
-        setFuelMilage(parseFloat(fuelMilage));
-      }
-      const DistanceExtra = await storageService.getData("DistanceExtra");
-      if (DistanceExtra !== null) {
-        setExtra(parseFloat(DistanceExtra));
-      }
-      setIsLoading(false);
-    };
+    }
     getData();
+  }, []);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true); // or some other action
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false); // or some other action
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
   }, []);
 
   if (isLoading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   } else {
     return (
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.inner}>
-            <DistanceModal
-              visible={modalVisible}
-              onClose={() => {
-                setModalVisible(false); 
-                setCalculationDone(false);
-              }}
-              distance={distance}
-              costPerUnit={costPerUnit}
-              costOneWay={costOneWay}
-              costBothWays={costBothWays}
-              distanceUnit={distanceUnit}
-              refillMessage={refillMessage}
-              distancePerTank={distancePerTank}
-              translations={translations}
-              language={language}
-            />
 
+      <View style={styles.container}>
+        <DistanceModal
+          visible={modalVisible}
+          onClose={() => {
+            setModalVisible(false);
+            setCalculationDone(false);
+          }}
+          distance={distance || 0}
+          costPerUnit={costPerUnit || 0}
+          costOneWay={costOneWay || 0}
+          costBothWays={costBothWays || 0}
+          distanceUnit={distanceUnit || 'km'}
+          refillMessage={refillMessage}
+          distancePerTank={distancePerTank || 0}
+          translations={translations}
+          language={language}
+        />
+        
+        <KeyboardAwareScrollView
+          contentContainerStyle={styles.scrollContainer}
+        >
+          <View style={styles.head}>
             <View style={styles.header}>
               <Text style={styles.headerText}>{translations.typeIn}</Text>
               <Picker
@@ -208,30 +213,42 @@ const DistancePage = () => {
                 <Picker.Item label={translations.miles} value="mi" />
               </Picker>
             </View>
+
+
             <TextInput
               keyboardType="numeric"
               value={distance ? distance.toString() : ""}
               onChangeText={setDistance}
               placeholder={`${translations.enterDistance} ${distanceUnit}`}
-              style={styles.input}
+              style={[styles.input, { width: "100%" }]}
             />
+          </View>
 
+          <View style={styles.calcBox}>
             {isCalculating ? (
               <View style={{ padding: 27 }}>
                 <ActivityIndicator size="large" color="#a8bfad" />
               </View>
             ) : (
-              <CalculateButton onPress={handleCalculate} />
-            )}
+              <CalculateButton onPress={handleCalculate} style={styles.calcBtn} />
+            )
+            }
+          </View>
 
+          <View style={styles.fuelBox}>
             <FuelPicker
               selectedValue={fuelUnit}
               onValueChange={(newFuelUnit) => {
                 handleFuelUnit(fuelUnit, newFuelUnit, fuelMilage, tankSize, fuelPrice, setFuelMilage, setTankSize, setFuelPrice, setFuelUnit, setIsCalculating);
               }}
-            ></FuelPicker>
+              style={styles.pickerFuel}
+            >
+            </FuelPicker>
+          </View>
 
-            <View style={styles.grid}>
+
+          <View style={styles.grid}>
+            <View style={styles.gridSection}>
               <View style={styles.gridItem}>
                 <Text style={styles.gridItemLabel}>
                   {translations.tankSize}
@@ -241,7 +258,7 @@ const DistancePage = () => {
                   value={tankSize ? tankSize.toString() : ""}
                   onChangeText={setTankSize}
                   placeholder={translations.enterTankSize}
-                  style={styles.input}
+                  style={styles.gridInput}
                 />
               </View>
               <View style={styles.gridItem}>
@@ -253,23 +270,26 @@ const DistancePage = () => {
                   value={fuelPrice ? fuelPrice.toString() : ""}
                   onChangeText={setFuelPrice}
                   placeholder={translations.enterFuelPrice}
-                  style={styles.input}
+                  style={styles.gridInput}
                 />
               </View>
+            </View>
+
+            <View style={styles.gridSection}>
               <View style={styles.gridItem}>
                 <Text style={styles.gridItemLabel}>
                   {fuelUnit == "lpk"
                     ? "L/100km"
                     : fuelUnit == "mpg"
-                    ? "M/Gallon"
-                    : "Fuel Unit"}
+                      ? "M/Gallon"
+                      : "Fuel Unit"}
                 </Text>
                 <TextInput
                   keyboardType="numeric"
                   value={fuelMilage ? fuelMilage.toString() : ""}
                   onChangeText={setFuelMilage}
                   placeholder={`${translations.fuelEfficiency}`}
-                  style={styles.input}
+                  style={styles.gridInput}
                 />
               </View>
               <View style={styles.gridItem}>
@@ -279,14 +299,17 @@ const DistancePage = () => {
                   value={extra ? extra.toString() : ""}
                   onChangeText={setExtra}
                   placeholder={`${translations.enterExtraFees}`}
-                  style={styles.input}
+                  style={styles.gridInput}
                 />
               </View>
             </View>
-            <BackButton />
+
           </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+
+        {!keyboardVisible && <BackButton />}
+
+      </View>
     );
   }
 };
@@ -295,15 +318,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  inner: {
+  scrollContainer: {
+    flexGrow: 1,
     padding: 16,
-    flex: 1,
-    justifyContent: "space-around",
+    paddingBottom: 90,
+  },
+  head: {
+    flex: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
   header: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingBottom: 10,
+  },
+  picker: {
+    width: 165,
+    height: "100%",
   },
   headerText: {
     fontSize: 20,
@@ -319,21 +353,34 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     textAlign: "center",
   },
+  calcBox: {
+    flex: 1,
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  fuelBox: {
+    flex: 1,
+    paddingTop: 20,
+    paddingBottom: 50,
+  },
   grid: {
+    flex: 6,
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  gridSection: {
+    flex: 1,
+    paddingBottom: 10,
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
     alignItems: "center",
-    verticalAlign: "middle",
-    marginBottom: 100,
-  },
-  picker: {
-    width: "50%",
+    justifyContent: "space-between",
   },
   gridItem: {
     justifyContent: "center",
     textAlign: "center",
     width: "48%",
+    margin: 3,
   },
   gridItemLabel: {
     fontSize: 14,
@@ -341,6 +388,16 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textAlign: "center",
   },
+  gridInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    padding: 8,
+    paddingBottom: 20,
+    paddingTop: 20,
+    marginBottom: 16,
+    borderRadius: 4,
+    textAlign: "center",
+  }
 });
 
 export default DistancePage;

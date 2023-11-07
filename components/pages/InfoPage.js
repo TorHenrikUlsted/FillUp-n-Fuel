@@ -4,58 +4,59 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useLanguage } from "../../utils/LanguageService";
 import BackButton from "../atoms/button/BackButton";
 import { version } from '../../package.json';
-import Spacer from '../atoms/spacer/spacer';
 
 const InfoPage = () => {
     const { translations } = useLanguage();
 
   return (
     <View style={styles.container}>
-        <ScrollView  contentContainerStyle={styles.scrollContainer}>
+      <ScrollView  contentContainerStyle={styles.scrollContainer}>
         <View style={styles.body}>
-            <Text style={styles.header}>{translations.appName}</Text>
-            <Image
-                source={require('../../assets/icon.png' )}
-                style={{ width: 200, height: 200 }}
-            />
-            <Text>{translations.version} {version}</Text>
-            <Spacer h={30} />
-            <Text style={styles.header}>{translations.appDescHead}</Text>
-            <Text style={styles.text}>{translations.appDescBody}</Text>
+          <Text style={styles.header}>{translations.appName}</Text>
+          <Image
+            source={require('../../assets/icon.png' )}
+            style={{ width: 200, height: 200 }}
+          />
+          <Text style={{marginBottom: 25}}>{translations.version} {version}</Text>
 
-            <Text style={styles.header}>{translations.usageHead}</Text>
-            <Text style={styles.text}>{translations.usageBody}</Text>
+          <Text style={styles.header}>{translations.appDescHead}</Text>
+          <Text style={styles.text}>{translations.appDescBody}</Text>
+
+          <Text style={styles.header}>{translations.usageHead}</Text>
+          <Text style={styles.text}>{translations.usageBody}</Text>
+          
         </View>
 
         <View style={styles.footer}>
-            <View style={styles.iconSection}>
-                <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel')}>
-                    <Icon name="github" size={50} color="#FFF" />
-                    <Text style={styles.iconText}>GitHub</Text>
-                </TouchableOpacity>
 
-                <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('mailto:tor.henrik@thuworks.com')}>
-                    <Icon name="envelope" size={50} color="#FFF" />
-                    <Text style={styles.iconText}>{translations.email}</Text>
-                </TouchableOpacity>
-            </View>
+          <View style={styles.iconSection}>
+            <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel')}>
+              <Icon name="github" size={50} color="#FFF" />
+              <Text style={styles.iconText}>GitHub</Text>
+            </TouchableOpacity>
 
-            <View style={styles.iconSection}>
-                <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel/blob/main/LICENSE')}>
-                    <Icon name="file-text-o" size={50} color="#FFF" />
-                    <Text style={styles.iconText}>{translations.license}</Text>
-                </TouchableOpacity>
+            <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('mailto:tor.henrik@thuworks.com')}>
+              <Icon name="envelope" size={50} color="#FFF" />
+              <Text style={styles.iconText}>{translations.email}</Text>
+            </TouchableOpacity>
+          </View>
 
-                <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel/blob/main/privacyPolicy.md')}>
-                    <Icon name="user-secret" size={50} color="#FFF" />
-                    <Text style={styles.iconText}>{translations.privacyPolicy}</Text>
-                </TouchableOpacity>
-            </View>
+          <View style={styles.iconSection}>
+            <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel/blob/main/LICENSE')}>
+              <Icon name="file-text-o" size={50} color="#FFF" />
+              <Text style={styles.iconText}>{translations.license}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel/blob/main/privacyPolicy.md')}>
+              <Icon name="user-secret" size={50} color="#FFF" />
+              <Text style={styles.iconText}>{translations.privacyPolicy}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        </ScrollView >
+      </ScrollView >
 
-        <BackButton />
+      <BackButton />
 
     </View>
   );
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   scrollContainer: {
-    padding: 20,
+    padding: 16,
     paddingBottom: 90,
   },
   body: {
@@ -79,7 +80,6 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 5
   },
   text: {
     fontSize: 16,
