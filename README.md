@@ -19,4 +19,5 @@ A very simple app calculating fuel cost for a certain distance and how much it w
   <img src="./assets/phoneScreenshots/DistanceModal.jpg" width="240" />
   <img src="./assets/phoneScreenshots/FillUpPage.jpg" width="240" />
   <img src="./assets/phoneScreenshots/FillUpModal.jpg" width="240" />
+  <img src="./assets/phoneScreenshots/InfoPage.jpg" width="240" />
 </p>
