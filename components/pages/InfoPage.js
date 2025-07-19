@@ -1,23 +1,25 @@
 import React from 'react';
 import { View, Text, Linking, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FontAwesome } from '@expo/vector-icons';
 import { useLanguage } from "../../utils/LanguageService";
 import BackButton from "../atoms/button/BackButton";
-import { version } from '../../package.json';
+import packageJson from '../../package.json';
 
 const InfoPage = () => {
     const { translations } = useLanguage();
+    const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
-      <ScrollView  contentContainerStyle={styles.scrollContainer}>
+      <ScrollView  contentContainerStyle={[styles.scrollContainer, { paddingBottom: 90 + insets.bottom }]}>
         <View style={styles.body}>
           <Text style={styles.header}>{translations.appName}</Text>
           <Image
             source={require('../../assets/icon.png' )}
             style={{ width: 200, height: 200 }}
           />
-          <Text style={{marginBottom: 25}}>{translations.version} {version}</Text>
+          <Text style={{marginBottom: 25}}>{translations.version} {packageJson.version}</Text>
 
           <Text style={styles.header}>{translations.appDescHead}</Text>
           <Text style={styles.text}>{translations.appDescBody}</Text>
@@ -31,24 +33,24 @@ const InfoPage = () => {
 
           <View style={styles.iconSection}>
             <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel')}>
-              <Icon name="github" size={50} color="#FFF" />
+              <FontAwesome name="github" size={50} color="#FFF" />
               <Text style={styles.iconText}>GitHub</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('mailto:tor.henrik@thuworks.com')}>
-              <Icon name="envelope" size={50} color="#FFF" />
+              <FontAwesome name="envelope" size={50} color="#FFF" />
               <Text style={styles.iconText}>{translations.email}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.iconSection}>
             <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel/blob/main/LICENSE')}>
-              <Icon name="file-text-o" size={50} color="#FFF" />
+              <FontAwesome name="file-text-o" size={50} color="#FFF" />
               <Text style={styles.iconText}>{translations.license}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel/blob/main/privacyPolicy.md')}>
-              <Icon name="user-secret" size={50} color="#FFF" />
+              <FontAwesome name="user-secret" size={50} color="#FFF" />
               <Text style={styles.iconText}>{translations.privacyPolicy}</Text>
             </TouchableOpacity>
           </View>
@@ -112,4 +114,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default InfoPage;
+export default React.memo(InfoPage);

@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLanguage } from "../../../utils/LanguageService";
 
 const DistanceModal = ({
@@ -14,10 +15,11 @@ const DistanceModal = ({
   distancePerTank,
 }) => {
   const { translations } = useLanguage();
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal visible={visible} animationType="slide">
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
         <View>
           <Text style={[styles.heading, { fontSize: 30 }]}>
             For{" "}
@@ -113,7 +115,6 @@ const DistanceModal = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 80,
     padding: 16,
     alignItems: "center",
   },

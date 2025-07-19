@@ -16,10 +16,10 @@ export const useDebouncedStorage = (key, initialValue) => {
       const timeoutId = setTimeout(() => {
         storageService.saveData(key, value);
         setLastSavedValue(value);
-      }, 500); // debounce time is 500ms
+      }, 200); // reduced debounce time to 200ms for better responsiveness
 
       return () => clearTimeout(timeoutId); // this will clear Timeout
-                                            // if useEffect is run again within 500ms
+                                            // if useEffect is run again within 200ms
     }
   }, [value]);
 

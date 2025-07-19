@@ -1,5 +1,6 @@
 import React from "react";
-import { View, StyleSheet, StatusBar } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { useNavigation } from "@react-navigation/native";
 import { LanguageSelector } from "../../../utils/LanguageService";
 
@@ -8,20 +9,31 @@ const CustomHeader = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content"/>
-      <LanguageSelector />
+      <StatusBar style="dark" translucent={true} />
+      <View style={styles.headerContent}>
+        <View style={styles.spacer} />
+        <LanguageSelector />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    paddingTop: 25,
+  },
+  headerContent: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
-    height: 70,
+    justifyContent: "space-between",
+    height: 50,
     paddingHorizontal: 16,
-    zIndex: 1,
+  },
+  spacer: {
+    flex: 1,
   },
 });
 

@@ -10,38 +10,44 @@ const Stack = createStackNavigator();
 
 const AppNavigator = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: true,
+        gestureEnabled: true,
+        header: (props) => <CustomHeader {...props} />,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    >
 
       <Stack.Screen
         name="Home"
         component={HomePage}
-        options={{
-          header: (props) => <CustomHeader {...props} />,
-        }}
       />
     
       <Stack.Screen
         name="DistancePage"
         component={DistancePage}
-        options={{
-          header: (props) => <CustomHeader {...props} />,
-        }}
       />
 
       <Stack.Screen
         name="FillUpPage"
         component={FillUpPage}
-        options={{
-          header: (props) => <CustomHeader {...props} />,
-        }}
       />
 
       <Stack.Screen
         name="InfoPage"
         component={InfoPage}
-        options={{
-          header: (props) => <CustomHeader {...props} />,
-        }}
       />
 
     </Stack.Navigator>

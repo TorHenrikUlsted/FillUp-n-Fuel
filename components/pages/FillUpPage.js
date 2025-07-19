@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, StyleSheet, Keyboard, ActivityIndicator } from "react-native";
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { View, Text, TextInput, StyleSheet, Keyboard, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import storageService from "../../utils/StorageService";
 import { useLanguage } from "../../utils/LanguageService";
 import Gauge from "../molecules/gauge/Gauge";
@@ -13,6 +13,7 @@ import { useDebouncedStorage } from "../atoms/handle/useDebouncedStorage";
 
 const FillUpPage = () => {
   const { translations } = useLanguage();
+  const insets = useSafeAreaInsets();
   const [tankSize, setTankSize, saveTankSizeNow] = useDebouncedStorage("tankSize", "");
   const [fuelPrice, setFuelPrice, saveFuelPriceNow] = useDebouncedStorage("fuelPrice", "");
   const [currentFuelLevel, setCurrentFuelLevel, saveCurrentFuelLevelNow] = useDebouncedStorage("currentFuelLevel", [1, "/", 2]);
@@ -33,7 +34,7 @@ const FillUpPage = () => {
       if (cost !== prevCostRef.current || litersNeeded !== prevLitersNeededRef.current) {
         setIsModalVisible(true);
       }
-  
+
       prevCostRef.current = cost;
       prevLitersNeededRef.current = litersNeeded;
     }
@@ -52,18 +53,32 @@ const FillUpPage = () => {
       saveFuelMilageNow(),
     ]);
 
+    // Parse and validate inputs
+    const tankSizeNum = tankSize ? parseFloat(tankSize) : 0;
+    const fuelPriceNum = fuelPrice ? parseFloat(fuelPrice) : 0;
+
+    // Guard against NaN values
+    const safeTankSize = isNaN(tankSizeNum) ? 0 : tankSizeNum;
+    const safeFuelPrice = isNaN(fuelPriceNum) ? 0 : fuelPriceNum;
+
     // Convert the current fuel level from a fraction to a number
     const [numerator, _, denominator] = currentFuelLevel;
     let currentFuelLevelInLiters;
     if (denominator === 0) {
       currentFuelLevelInLiters = 0;
     } else {
-      currentFuelLevelInLiters = (numerator / denominator) * tankSize;
+      currentFuelLevelInLiters = (numerator / denominator) * safeTankSize;
     }
-    const cost = (tankSize - currentFuelLevelInLiters) * fuelPrice;
 
-    setCost(cost || 0);
-    setLitersNeeded(tankSize - currentFuelLevelInLiters || 0);
+    const cost = (safeTankSize - currentFuelLevelInLiters) * safeFuelPrice;
+    const litersNeeded = safeTankSize - currentFuelLevelInLiters;
+
+    // Guard against NaN values in results
+    const safeCost = isNaN(cost) || !isFinite(cost) ? 0 : cost;
+    const safeLitersNeeded = isNaN(litersNeeded) || !isFinite(litersNeeded) ? 0 : litersNeeded;
+
+    setCost(safeCost);
+    setLitersNeeded(safeLitersNeeded);
     setCalculationDone(true);
   };
 
@@ -77,19 +92,19 @@ const FillUpPage = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const tankSize = await storageService.getData("tankSize");
+        // Batch all storage calls together for better performance
+        const [tankSize, fuelPrice, currentFuelLevel, fuelUnit, fuelMilage] = await Promise.all([
+          storageService.getData("tankSize"),
+          storageService.getData("fuelPrice"),
+          storageService.getData("currentFuelLevel"),
+          storageService.getData("fuelUnit"),
+          storageService.getData("fuelMilage"),
+        ]);
+
         setTankSize(tankSize || "");
-
-        const fuelPrice = await storageService.getData("fuelPrice");
         setFuelPrice(fuelPrice || "");
-
-        const currentFuelLevel = await storageService.getData("currentFuelLevel");
         setCurrentFuelLevel(currentFuelLevel || [1, "/", 2]);
-
-        const fuelUnit = await storageService.getData("fuelUnit");
         setFuelUnit(fuelUnit || "lpk");
-
-        const fuelMilage = await storageService.getData("fuelMilage");
         setFuelMilage(fuelMilage || "");
 
       } catch (error) {
@@ -126,73 +141,79 @@ const FillUpPage = () => {
     return <ActivityIndicator size="large" color="#0000ff" />;
   } else {
     return (
-      <View style={styles.container} >
-        <KeyboardAwareScrollView contentContainerStyle={styles.scrollContainer}>
-          <FillUpModal
-            isVisible={isModalVisible}
-            cost={cost || 0}
-            litersNeeded={litersNeeded || 0}
-            fuelUnit={fuelUnit || "lpk"}
-            onClose={() => {
-              setIsModalVisible(false); 
-              setCalculationDone(false);
-            }}
-          />
-
-          <View style={styles.fuelBox}>
-            <FuelPicker
-              selectedValue={fuelUnit}
-              onValueChange={(newFuelUnit) => {
-                  handleFuelUnit(fuelUnit, newFuelUnit, fuelMilage, tankSize, fuelPrice, setFuelMilage, setTankSize, setFuelPrice, setFuelUnit, setIsCalculating);
+      <View style={[styles.container, { paddingTop: insets.top }]} >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 75}
+          style={styles.container}
+        >
+          <ScrollView contentContainerStyle={[styles.scrollContainer, { paddingBottom: 90 + insets.bottom }]}>
+            <FillUpModal
+              isVisible={isModalVisible}
+              cost={cost || 0}
+              litersNeeded={litersNeeded || 0}
+              fuelUnit={fuelUnit || "lpk"}
+              onClose={() => {
+                setIsModalVisible(false);
+                setCalculationDone(false);
               }}
-            >
-            </FuelPicker>
-          </View>
-
-          <View style={styles.grid}>
-            <View style={styles.gridItem}>
-              <Text style={styles.inputLabel}>{translations.tankSize}</Text>
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                value={tankSize ? tankSize.toString() : ""}
-                onChangeText={setTankSize}
-                placeholder={translations.enterTankSize}
-              />
-            </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.inputLabel}>{translations.fuelPrice}</Text>
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                value={fuelPrice ? fuelPrice.toString() : ""}
-                onChangeText={setFuelPrice}
-                placeholder={translations.enterFuelPrice}
-              />
-            </View>
-          </View>
-
-          <View style={styles.gaugeContainer}>
-            <Gauge
-              size={300}
-              strokeWidth={10}
-              strokeColor="#000"
-              onFuelLevelChange={setCurrentFuelLevel}
-              setIsCalculating={setIsCalculating}
             />
-          </View>
 
-          <View style={styles.calcBox}>
-            {isCalculating ? (
-              <View style={{ padding: 27 }}>
-                <ActivityIndicator size="large" color="#a8bfad" />
+            <View style={styles.fuelBox}>
+              <FuelPicker
+                selectedValue={fuelUnit}
+                onValueChange={(newFuelUnit) => {
+                  handleFuelUnit(fuelUnit, newFuelUnit, fuelMilage, tankSize, fuelPrice, setFuelMilage, setTankSize, setFuelPrice, setFuelUnit, setIsCalculating);
+                }}
+              >
+              </FuelPicker>
+            </View>
+
+            <View style={styles.grid}>
+              <View style={styles.gridItem}>
+                <Text style={styles.inputLabel}>{translations.tankSize}</Text>
+                <TextInput
+                  keyboardType="numeric"
+                  style={styles.input}
+                  value={tankSize ? tankSize.toString() : ""}
+                  onChangeText={setTankSize}
+                  placeholder={translations.enterTankSize}
+                />
               </View>
-            ) : (
-              <CalculateButton onPress={handleCalculate} />
-            )}
-          </View>
+              <View style={styles.gridItem}>
+                <Text style={styles.inputLabel}>{translations.fuelPrice}</Text>
+                <TextInput
+                  keyboardType="numeric"
+                  style={styles.input}
+                  value={fuelPrice ? fuelPrice.toString() : ""}
+                  onChangeText={setFuelPrice}
+                  placeholder={translations.enterFuelPrice}
+                />
+              </View>
+            </View>
 
-        </KeyboardAwareScrollView>
+            <View style={styles.gaugeContainer}>
+              <Gauge
+                size={300}
+                strokeWidth={10}
+                strokeColor="#000"
+                onFuelLevelChange={setCurrentFuelLevel}
+                setIsCalculating={setIsCalculating}
+              />
+            </View>
+
+            <View style={styles.calcBox}>
+              {isCalculating ? (
+                <View style={{ padding: 27 }}>
+                  <ActivityIndicator size="large" color="#a8bfad" />
+                </View>
+              ) : (
+                <CalculateButton onPress={handleCalculate} />
+              )}
+            </View>
+
+          </ScrollView>
+        </KeyboardAvoidingView>
 
         {!keyboardVisible && <BackButton />}
 
@@ -208,6 +229,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     padding: 16,
+    paddingTop: 16,
     paddingBottom: 90,
   },
   fuelBox: {
@@ -253,4 +275,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FillUpPage;
+export default React.memo(FillUpPage);

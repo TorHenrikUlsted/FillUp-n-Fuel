@@ -2,12 +2,14 @@
   "expo": {
     "name": "FillUp 'n Fuel",
     "slug": "fillup-n-fuel",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "androidStatusBar": {
-      "backgroundColor": "#f2f2f2"
+      "backgroundColor": "#f2f2f2",
+      "translucent": true,
+      "barStyle": "dark-content"
     },
     "splash": {
       "image": "./assets/splash.png",
@@ -21,7 +23,7 @@
       "supportsTablet": true
     },
     "android": {
-      "versionCode": 20300,
+      "versionCode": 20400,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

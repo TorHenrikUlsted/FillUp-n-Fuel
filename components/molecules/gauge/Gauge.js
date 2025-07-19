@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { StyleSheet, View, Text } from "react-native";
 import Svg, { Path, Line } from "react-native-svg";
 import LeftArrowButton from "../../atoms/button/LeftArrowButton";
@@ -16,11 +16,11 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange, setIsCalcula
     const timeoutId = setTimeout(() => {
       setDebouncedLineIndex(lineIndex);
       setIsCalculating(false)
-    }, 500); // debounce time is 500ms
+    }, 150); // reduced debounce time to 150ms for better responsiveness
     
 
     return () => clearTimeout(timeoutId);
-                                          // if useEffect is run again within 500ms
+                                          // if useEffect is run again within 150ms
   }, [lineIndex]);
 
   useEffect(() => {
@@ -36,26 +36,29 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange, setIsCalcula
   const radius = (size - strokeWidth) / 2;
   const lineLength = 25; // length of longer lines
 
-  const lines = [];
-  for (let i = 0; i <= numLines; i++) {
-    const lineAngle = (i * Math.PI) / numLines - Math.PI;
-    const x1 = size / 2 + radius * Math.cos(lineAngle);
-    const y1 = size / 2 + radius * Math.sin(lineAngle);
-    const currentLineLength = i % (numLines / 4) === 0 ? lineLength : 10; // make every fourth line longer
-    const x2 = size / 2 + (radius - currentLineLength) * Math.cos(lineAngle);
-    const y2 = size / 2 + (radius - currentLineLength) * Math.sin(lineAngle);
-    lines.push(
-      <Line
-        key={i}
-        x1={x1}
-        y1={y1}
-        x2={x2}
-        y2={y2}
-        stroke={strokeColor}
-        strokeWidth={strokeWidth}
-      />
-    );
-  }
+  const lines = useMemo(() => {
+    const linesArray = [];
+    for (let i = 0; i <= numLines; i++) {
+      const lineAngle = (i * Math.PI) / numLines - Math.PI;
+      const x1 = size / 2 + radius * Math.cos(lineAngle);
+      const y1 = size / 2 + radius * Math.sin(lineAngle);
+      const currentLineLength = i % (numLines / 4) === 0 ? lineLength : 10; // make every fourth line longer
+      const x2 = size / 2 + (radius - currentLineLength) * Math.cos(lineAngle);
+      const y2 = size / 2 + (radius - currentLineLength) * Math.sin(lineAngle);
+      linesArray.push(
+        <Line
+          key={i}
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke={strokeColor}
+          strokeWidth={strokeWidth}
+        />
+      );
+    }
+    return linesArray;
+  }, [size, strokeWidth, strokeColor, numLines, radius, lineLength]);
 
   const getFraction = (lineIndex, numLines) => {
     if (lineIndex === 0) {
@@ -168,4 +171,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Gauge;
+export default React.memo(Gauge);

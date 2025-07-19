@@ -1,18 +1,20 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import { useLanguage } from '../../../utils/LanguageService';
 
 const BackButton = () => {
   const navigation = useNavigation();
   const { translations } = useLanguage();
+  const insets = useSafeAreaInsets();
 
   const handlePress = () => {
     navigation.navigate('Home')
   }
 
   return (
-    <TouchableOpacity style={styles.button} onPress={handlePress}>
+    <TouchableOpacity style={[styles.button, { bottom: insets.bottom }]} onPress={handlePress}>
       <Text style={styles.text}>{translations.back}</Text>
     </TouchableOpacity>
   );

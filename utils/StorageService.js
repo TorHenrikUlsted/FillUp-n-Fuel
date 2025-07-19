@@ -18,10 +18,12 @@ const storageService = {
       if (value !== null) {
         return JSON.parse(value);
       } else {
-        console.error(`No data found for key: ${key}`);
+        console.log(`No data found for key: ${key}, returning null`);
+        return null;
       }
     } catch (error) {
       console.error(`Error fetching data for key: ${key}`, error);
+      return null;
     }
   },
 };

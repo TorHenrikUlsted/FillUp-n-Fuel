@@ -1,5 +1,6 @@
 import React, { useState, createContext, useContext, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { FontAwesome } from '@expo/vector-icons';
 import storageService from "./StorageService";
 import en from "./lang/en";
 import no from "./lang/no";
@@ -9,7 +10,7 @@ const LanguageContext = createContext();
 export const LanguageService = ({ children }) => {
   const [language, setLanguage] = useState("en");
   const [translations, setTranslations] = useState(en);
-  const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const getSavedLanguage = async () => {
@@ -23,9 +24,10 @@ export const LanguageService = ({ children }) => {
           setLanguage(defaultLanguage);
           setTranslations(defaultLanguage === "en" ? en : no);
         }
-        setLoading(false);
+        setIsInitialized(true);
       } catch (error) {
         console.log(error);
+        setIsInitialized(true);
       }
     };
     getSavedLanguage();
@@ -41,10 +43,6 @@ export const LanguageService = ({ children }) => {
     }
   };
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-
   return (
     <LanguageContext.Provider
       value={{ language, translations, handleLanguageChange }}
@@ -57,15 +55,23 @@ export const LanguageService = ({ children }) => {
 export const useLanguage = () => useContext(LanguageContext);
 
 export const LanguageSelector = () => {
-  const { handleLanguageChange } = useLanguage();
+  const { handleLanguageChange, language } = useLanguage();
 
   return (
     <View style={styles.flags}>
-      <TouchableOpacity onPress={() => handleLanguageChange("no")}>
-        <Text style={styles.flagText}>🇳🇴</Text>
+      <TouchableOpacity 
+        style={[styles.flagButton, language === "no" && styles.activeFlag]} 
+        onPress={() => handleLanguageChange("no")}
+      >
+        <FontAwesome name="flag" size={20} color={language === "no" ? "#fff" : "#666"} />
+        <Text style={[styles.flagTextFallback, language === "no" && styles.activeText]}>NO</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => handleLanguageChange("en")}>
-        <Text style={styles.flagText}>🇬🇧</Text>
+      <TouchableOpacity 
+        style={[styles.flagButton, language === "en" && styles.activeFlag]} 
+        onPress={() => handleLanguageChange("en")}
+      >
+        <FontAwesome name="flag" size={20} color={language === "en" ? "#fff" : "#666"} />
+        <Text style={[styles.flagTextFallback, language === "en" && styles.activeText]}>EN</Text>
       </TouchableOpacity>
     </View>
   );
@@ -74,9 +80,26 @@ export const LanguageSelector = () => {
 const styles = StyleSheet.create({
   flags: {
     flexDirection: "row",
+    alignItems: "center",
   },
-  flagText: {
-    fontSize: 30,
-    marginHorizontal: 10,
+  flagButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginHorizontal: 5,
+  },
+  activeFlag: {
+    backgroundColor: "#a8bfad",
+  },
+  flagTextFallback: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#666",
+    marginTop: 2,
+  },
+  activeText: {
+    color: "#fff",
   },
 });
