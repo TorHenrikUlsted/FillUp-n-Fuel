@@ -1,16 +1,35 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Linking, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { FontAwesome } from '@expo/vector-icons';
 import { useLanguage } from "../../utils/LanguageService";
 import BackButton from "../atoms/button/BackButton";
 import packageJson from '../../package.json';
 
-const InfoPage = () => {
+const SWIPE_THRESHOLD = 80;
+const MIN_VELOCITY = 200;
+
+const InfoPage = ({ navigation }) => {
     const { translations } = useLanguage();
     const insets = useSafeAreaInsets();
 
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetY([-20, 20])
+        .failOffsetX([-20, 20])
+        .onEnd((e) => {
+          const { translationY, velocityY } = e;
+          if (translationY > SWIPE_THRESHOLD || velocityY > MIN_VELOCITY) {
+            navigation.goBack();
+          }
+        }),
+    [navigation]
+  );
+
   return (
+    <GestureDetector gesture={panGesture}>
     <View style={styles.container}>
       <ScrollView  contentContainerStyle={[styles.scrollContainer, { paddingBottom: 90 + insets.bottom }]}>
         <View style={styles.body}>
@@ -45,7 +64,7 @@ const InfoPage = () => {
 
           <View style={styles.iconSection}>
             <TouchableOpacity style={styles.icon} onPress={() => Linking.openURL('https://github.com/ThuWorks/FillUp-n-Fuel/blob/main/LICENSE')}>
-              <FontAwesome name="file-text-o" size={50} color="#FFF" />
+              <FontAwesome name="file-text" size={50} color="#FFF" />
               <Text style={styles.iconText}>{translations.license}</Text>
             </TouchableOpacity>
 
@@ -61,6 +80,7 @@ const InfoPage = () => {
       <BackButton />
 
     </View>
+    </GestureDetector>
   );
 };
 
@@ -97,21 +117,28 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   iconSection: {
-    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   icon: {
-    flex: 1/2.5,
-    marginHorizontal: 20,
+    width: '50%',
+    maxWidth: 160,
     marginVertical: 20,
-    alignItems: "center",
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    height: 80,
   },
   iconText: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingTop: 5,
     fontSize: 15,
-    color: "white",
-  }
+    color: 'white',
+    textAlign: 'center',
+  },
 });
 
 export default React.memo(InfoPage);

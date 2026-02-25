@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { View, Text, TextInput, StyleSheet, Keyboard, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import storageService from "../../utils/StorageService";
 import { useLanguage } from "../../utils/LanguageService";
 import Gauge from "../molecules/gauge/Gauge";
@@ -11,7 +12,11 @@ import FillUpModal from "../organisms/modal/FillUpModal";
 import handleFuelUnit from "../atoms/handle/handleFuelUnit";
 import { useDebouncedStorage } from "../atoms/handle/useDebouncedStorage";
 
-const FillUpPage = () => {
+const INPUT_PLACEHOLDER_COLOR = "#94a3b8";
+const SWIPE_THRESHOLD = 80;
+const MIN_VELOCITY = 200;
+
+const FillUpPage = ({ navigation }) => {
   const { translations } = useLanguage();
   const insets = useSafeAreaInsets();
   const [tankSize, setTankSize, saveTankSizeNow] = useDebouncedStorage("tankSize", "");
@@ -137,10 +142,25 @@ const FillUpPage = () => {
     };
   }, []);
 
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-20, 20])
+        .failOffsetY([-15, 15])
+        .onEnd((e) => {
+          const { translationX, velocityX } = e;
+          if (translationX < -SWIPE_THRESHOLD || velocityX < -MIN_VELOCITY) {
+            navigation.goBack();
+          }
+        }),
+    [navigation]
+  );
+
   if (isLoading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   } else {
     return (
+      <GestureDetector gesture={panGesture}>
       <View style={[styles.container, { paddingTop: insets.top }]} >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
@@ -178,6 +198,7 @@ const FillUpPage = () => {
                   value={tankSize ? tankSize.toString() : ""}
                   onChangeText={setTankSize}
                   placeholder={translations.enterTankSize}
+                  placeholderTextColor={INPUT_PLACEHOLDER_COLOR}
                 />
               </View>
               <View style={styles.gridItem}>
@@ -188,6 +209,7 @@ const FillUpPage = () => {
                   value={fuelPrice ? fuelPrice.toString() : ""}
                   onChangeText={setFuelPrice}
                   placeholder={translations.enterFuelPrice}
+                  placeholderTextColor={INPUT_PLACEHOLDER_COLOR}
                 />
               </View>
             </View>
@@ -218,6 +240,7 @@ const FillUpPage = () => {
         {!keyboardVisible && <BackButton />}
 
       </View>
+      </GestureDetector>
     );
   }
 };
@@ -242,15 +265,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   inputLabel: {
-    fontSize: 14,
-    fontWeight: "bold",
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#64748b",
+    marginBottom: 8,
     textAlign: "center",
+    letterSpacing: 0.3,
   },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    fontSize: 14,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1.5,
+    borderColor: "#e2e8f0",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#1e293b",
     textAlign: "center",
   },
   grid: {
@@ -261,9 +292,9 @@ const styles = StyleSheet.create({
   },
   gridItem: {
     flex: 1,
-    paddingHorizontal: 5,
-    marginBottom: 16,
-    height: 100,
+    paddingHorizontal: 6,
+    marginBottom: 20,
+    minHeight: 88,
   },
   gaugeContainer: {
     alignItems: "center",

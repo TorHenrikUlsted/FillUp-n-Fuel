@@ -1,5 +1,5 @@
 import React from "react";
-import { createStackNavigator } from "@react-navigation/stack";
+import { createStackNavigator, CardStyleInterpolators } from "@react-navigation/stack";
 import CustomHeader from "../components/organisms/header/Header";
 import HomePage from "../components/pages/HomePage";
 import DistancePage from "../components/pages/DistancePage";
@@ -43,11 +43,17 @@ const AppNavigator = () => {
       <Stack.Screen
         name="FillUpPage"
         component={FillUpPage}
+        options={{
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOSInverted,
+        }}
       />
 
       <Stack.Screen
         name="InfoPage"
         component={InfoPage}
+        options={{
+          cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
+        }}
       />
 
     </Stack.Navigator>

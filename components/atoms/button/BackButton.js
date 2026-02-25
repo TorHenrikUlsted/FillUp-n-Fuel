@@ -14,7 +14,10 @@ const BackButton = () => {
   }
 
   return (
-    <TouchableOpacity style={[styles.button, { bottom: insets.bottom }]} onPress={handlePress}>
+    <TouchableOpacity
+      style={[styles.button, { paddingBottom: 20 + insets.bottom }]}
+      onPress={handlePress}
+    >
       <Text style={styles.text}>{translations.back}</Text>
     </TouchableOpacity>
   );
@@ -28,8 +31,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     flex: 1,
     padding: 20,
+    paddingBottom: 20,
     backgroundColor: '#ddd',
-    borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 0,

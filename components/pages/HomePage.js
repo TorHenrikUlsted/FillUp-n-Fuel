@@ -1,11 +1,41 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useLanguage } from "../../utils/LanguageService";
+
+const SWIPE_THRESHOLD = 80;
+const MIN_VELOCITY = 200;
 
 const HomePage = ({ navigation }) => {
   const { translations } = useLanguage();
+
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-20, 20])
+        .activeOffsetY([-25, 25])
+        .onEnd((e) => {
+          const { translationX, translationY, velocityX, velocityY } = e;
+          const isHorizontal = Math.abs(translationX) >= Math.abs(translationY);
+          if (isHorizontal) {
+            if (Math.abs(translationX) < SWIPE_THRESHOLD && Math.abs(velocityX) < MIN_VELOCITY) return;
+if (translationX < -SWIPE_THRESHOLD || velocityX < -MIN_VELOCITY) {
+            navigation.navigate("DistancePage");
+          } else if (translationX > SWIPE_THRESHOLD || velocityX > MIN_VELOCITY) {
+            navigation.navigate("FillUpPage");
+          }
+          } else {
+            if (translationY < -SWIPE_THRESHOLD || velocityY < -MIN_VELOCITY) {
+              navigation.navigate("InfoPage");
+            }
+          }
+        }),
+    [navigation]
+  );
+
   return (
-    <View style={styles.container}>
+    <GestureDetector gesture={panGesture}>
+      <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image style={styles.logo} source={require("../../assets/icon.png")} />
       </View>
@@ -37,6 +67,7 @@ const HomePage = ({ navigation }) => {
         </TouchableOpacity>
       </View>
     </View>
+    </GestureDetector>
   );
 };
 

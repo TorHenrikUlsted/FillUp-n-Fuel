@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { View, Text, TextInput, StyleSheet, Keyboard, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { Picker } from "@react-native-picker/picker";
 import DistanceModal from "../organisms/modal/DistanceModal";
 import { useLanguage } from "../../utils/LanguageService";
@@ -11,7 +12,11 @@ import FuelPicker from "../atoms/picker/FuelPicker";
 import { useDebouncedStorage } from "../atoms/handle/useDebouncedStorage";
 import handleFuelUnit from "../atoms/handle/handleFuelUnit";
 
-const DistancePage = () => {
+const INPUT_PLACEHOLDER_COLOR = "#94a3b8";
+const SWIPE_THRESHOLD = 80;
+const MIN_VELOCITY = 200;
+
+const DistancePage = ({ navigation }) => {
   const { language, translations } = useLanguage();
   const insets = useSafeAreaInsets();
   const [distanceUnit, setDistanceUnit, saveDistanceUnitNow] = useDebouncedStorage("distanceUnit", "");
@@ -196,11 +201,25 @@ const DistancePage = () => {
     };
   }, []);
 
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-20, 20])
+        .failOffsetY([-15, 15])
+        .onEnd((e) => {
+          const { translationX, velocityX } = e;
+          if (translationX > SWIPE_THRESHOLD || velocityX > MIN_VELOCITY) {
+            navigation.goBack();
+          }
+        }),
+    [navigation]
+  );
+
   if (isLoading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   } else {
     return (
-
+      <GestureDetector gesture={panGesture}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <DistanceModal
           visible={modalVisible}
@@ -244,6 +263,7 @@ const DistancePage = () => {
                 value={distance ? distance.toString() : ""}
                 onChangeText={setDistance}
                 placeholder={`${translations.enterDistance} ${distanceUnit}`}
+                placeholderTextColor={INPUT_PLACEHOLDER_COLOR}
                 style={[styles.input, { width: "100%" }]}
               />
             </View>
@@ -282,6 +302,7 @@ const DistancePage = () => {
                     value={tankSize ? tankSize.toString() : ""}
                     onChangeText={setTankSize}
                     placeholder={translations.enterTankSize}
+                    placeholderTextColor={INPUT_PLACEHOLDER_COLOR}
                     style={styles.gridInput}
                   />
                 </View>
@@ -294,6 +315,7 @@ const DistancePage = () => {
                     value={fuelPrice ? fuelPrice.toString() : ""}
                     onChangeText={setFuelPrice}
                     placeholder={translations.enterFuelPrice}
+                    placeholderTextColor={INPUT_PLACEHOLDER_COLOR}
                     style={styles.gridInput}
                   />
                 </View>
@@ -313,6 +335,7 @@ const DistancePage = () => {
                     value={fuelMilage ? fuelMilage.toString() : ""}
                     onChangeText={setFuelMilage}
                     placeholder={`${translations.fuelEfficiency}`}
+                    placeholderTextColor={INPUT_PLACEHOLDER_COLOR}
                     style={styles.gridInput}
                   />
                 </View>
@@ -323,6 +346,7 @@ const DistancePage = () => {
                     value={extra ? extra.toString() : ""}
                     onChangeText={setExtra}
                     placeholder={`${translations.enterExtraFees}`}
+                    placeholderTextColor={INPUT_PLACEHOLDER_COLOR}
                     style={styles.gridInput}
                   />
                 </View>
@@ -335,6 +359,7 @@ const DistancePage = () => {
         {!keyboardVisible && <BackButton />}
 
       </View>
+      </GestureDetector>
     );
   }
 };
@@ -372,11 +397,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 8,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1.5,
+    borderColor: "#e2e8f0",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#1e293b",
     marginBottom: 16,
-    borderRadius: 4,
     textAlign: "center",
   },
   calcBox: {
@@ -409,21 +438,25 @@ const styles = StyleSheet.create({
     margin: 3,
   },
   gridItemLabel: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 4,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#64748b",
+    marginBottom: 8,
     textAlign: "center",
+    letterSpacing: 0.3,
   },
   gridInput: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 8,
-    paddingBottom: 20,
-    paddingTop: 20,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1.5,
+    borderColor: "#e2e8f0",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#1e293b",
     marginBottom: 16,
-    borderRadius: 4,
     textAlign: "center",
-  }
+  },
 });
 
 export default React.memo(DistancePage);

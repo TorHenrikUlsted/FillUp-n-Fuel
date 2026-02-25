@@ -1,8 +1,24 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { StyleSheet, View, Text } from "react-native";
-import Svg, { Path, Line } from "react-native-svg";
+import { StyleSheet, View, Text, Pressable } from "react-native";
+import Svg, { Path, Line, Circle, Defs, LinearGradient, Stop } from "react-native-svg";
+
 import LeftArrowButton from "../../atoms/button/LeftArrowButton";
 import RightArrowButton from "../../atoms/button/RightArrowButton";
+
+const GAUGE_COLORS = {
+  track: "#2a2d3a",
+  trackBorder: "#3d4152",
+  filled: "#00d4aa",
+  filledEnd: "#00a884",
+  needle: "#dc2626",
+  needleHighlight: "#ef4444",
+  needleShadow: "rgba(0,0,0,0.35)",
+  pinCap: "#b91c1c",
+  tick: "rgba(255,255,255,0.35)",
+  tickMajor: "rgba(255,255,255,0.6)",
+  text: "#475569",
+  textMuted: "#64748b",
+};
 
 const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange, setIsCalculating }) => {
   const numLines = 16;
@@ -11,40 +27,58 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange, setIsCalcula
   const [debouncedLineIndex, setDebouncedLineIndex] = useState(lineIndex);
 
   useEffect(() => {
-    setIsCalculating(true)
-    // Debounce the onFuelLevelChange function call
+    setIsCalculating(true);
     const timeoutId = setTimeout(() => {
       setDebouncedLineIndex(lineIndex);
-      setIsCalculating(false)
-    }, 150); // reduced debounce time to 150ms for better responsiveness
-    
+      setIsCalculating(false);
+    }, 150);
 
     return () => clearTimeout(timeoutId);
-                                          // if useEffect is run again within 150ms
   }, [lineIndex]);
 
   useEffect(() => {
-    setIsCalculating(true)
-    // Call the onFuelLevelChange function whenever the debouncedLineIndex value changes
+    setIsCalculating(true);
     if (onFuelLevelChange) {
       onFuelLevelChange(getFraction(debouncedLineIndex, numLines));
     }
-    
-    setIsCalculating(false)
+    setIsCalculating(false);
   }, [debouncedLineIndex]);
 
-  const radius = (size - strokeWidth) / 2;
-  const lineLength = 25; // length of longer lines
+  const cx = size / 2;
+  const cy = size / 2;
+  const radius = (size - strokeWidth * 2) / 2 - 8;
+  const lineLengthMajor = 14;
+  const lineLengthMinor = 8;
+  const needleLength = radius - 4;
+
+  const trackPath = useMemo(() => {
+    const startX = cx - radius;
+    const startY = cy;
+    const endX = cx + radius;
+    const endY = cy;
+    return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
+  }, [cx, cy, radius]);
+
+  const filledPath = useMemo(() => {
+    const angleRad = (angle * Math.PI) / 180;
+    const endX = cx + radius * Math.cos(angleRad);
+    const endY = cy + radius * Math.sin(angleRad);
+    const startX = cx - radius;
+    const startY = cy;
+    if (angle <= -179.9) return "";
+    return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
+  }, [angle, cx, cy, radius]);
 
   const lines = useMemo(() => {
     const linesArray = [];
     for (let i = 0; i <= numLines; i++) {
       const lineAngle = (i * Math.PI) / numLines - Math.PI;
-      const x1 = size / 2 + radius * Math.cos(lineAngle);
-      const y1 = size / 2 + radius * Math.sin(lineAngle);
-      const currentLineLength = i % (numLines / 4) === 0 ? lineLength : 10; // make every fourth line longer
-      const x2 = size / 2 + (radius - currentLineLength) * Math.cos(lineAngle);
-      const y2 = size / 2 + (radius - currentLineLength) * Math.sin(lineAngle);
+      const isMajor = i % (numLines / 4) === 0;
+      const currentLineLength = isMajor ? lineLengthMajor : lineLengthMinor;
+      const x1 = cx + radius * Math.cos(lineAngle);
+      const y1 = cy + radius * Math.sin(lineAngle);
+      const x2 = cx + (radius - currentLineLength) * Math.cos(lineAngle);
+      const y2 = cy + (radius - currentLineLength) * Math.sin(lineAngle);
       linesArray.push(
         <Line
           key={i}
@@ -52,13 +86,30 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange, setIsCalcula
           y1={y1}
           x2={x2}
           y2={y2}
-          stroke={strokeColor}
-          strokeWidth={strokeWidth}
+          stroke={isMajor ? GAUGE_COLORS.tickMajor : GAUGE_COLORS.tick}
+          strokeWidth={isMajor ? 2.5 : 1.5}
+          strokeLinecap="round"
         />
       );
     }
     return linesArray;
-  }, [size, strokeWidth, strokeColor, numLines, radius, lineLength]);
+  }, [size, numLines, radius, cx, cy]);
+
+  const angleRad = (angle * Math.PI) / 180;
+  const needleTipX = cx + needleLength * Math.cos(angleRad);
+  const needleTipY = cy + needleLength * Math.sin(angleRad);
+  const needleBackAngle = ((angle + 180) * Math.PI) / 180;
+  const needleBackLength = 6;
+  const needleWidth = 4;
+  const backPerpX = needleWidth * Math.cos(angleRad + Math.PI / 2);
+  const backPerpY = needleWidth * Math.sin(angleRad + Math.PI / 2);
+  const needleBackX = cx + needleBackLength * Math.cos(needleBackAngle);
+  const needleBackY = cy + needleBackLength * Math.sin(needleBackAngle);
+  const baseLeftX = needleBackX + backPerpX;
+  const baseLeftY = needleBackY + backPerpY;
+  const baseRightX = needleBackX - backPerpX;
+  const baseRightY = needleBackY - backPerpY;
+  const needlePath = `M ${needleTipX} ${needleTipY} L ${baseLeftX} ${baseLeftY} L ${baseRightX} ${baseRightY} Z`;
 
   const getFraction = (lineIndex, numLines) => {
     if (lineIndex === 0) {
@@ -72,12 +123,7 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange, setIsCalcula
     } else if (lineIndex === numLines) {
       return [1, "/", 1];
     } else {
-      const gcd = (a, b) => {
-        if (!b) {
-          return a;
-        }
-        return gcd(b, a % b);
-      };
+      const gcd = (a, b) => (b ? gcd(b, a % b) : a);
       const numerator = lineIndex;
       const denominator = numLines;
       const divisor = gcd(numerator, denominator);
@@ -86,53 +132,111 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange, setIsCalcula
   };
 
   const handlePress = (side) => {
-
     if (side === "left") {
       if (angle > -180) {
-        setAngle((prevAngle) => prevAngle - 180 / numLines);
-        setLineIndex((prevLineIndex) => {
-          const newLineIndex = prevLineIndex - 1;
-          if (newLineIndex < 0) {
-            return numLines;
-          } else {
-            return newLineIndex;
-          }
+        setAngle((prev) => prev - 180 / numLines);
+        setLineIndex((prev) => {
+          const next = prev - 1;
+          return next < 0 ? numLines : next;
         });
       }
     } else if (side === "right") {
       if (angle < 0) {
-        setAngle((prevAngle) => prevAngle + 180 / numLines);
-        setLineIndex((prevLineIndex) => {
-          const newLineIndex = prevLineIndex + 1;
-          if (newLineIndex > numLines) {
-            return 0;
-          } else {
-            return newLineIndex;
-          }
+        setAngle((prev) => prev + 180 / numLines);
+        setLineIndex((prev) => {
+          const next = prev + 1;
+          return next > numLines ? 0 : next;
         });
       }
     }
   };
 
+  const fraction = getFraction(lineIndex, numLines);
+  const fractionDisplay =
+    fraction[0] === 0 && fraction[2] === 0 ? "0" : `${fraction[0]}/${fraction[2]}`;
+
+  const svgHeight = size / 1.5;
+
   return (
     <View style={styles.gauge}>
-      <Svg width={size} height={size / 1.5}>
-        <Path
-          d={`M${size / 2} ${size / 2} L${
-            size / 2 + radius * Math.cos((angle * Math.PI) / 180)
-          } ${size / 2 + radius * Math.sin((angle * Math.PI) / 180)}`}
-          stroke="#f00"
-          strokeWidth={strokeWidth}
-        />
-        {lines}
-      </Svg>
+      <View style={[styles.gaugeTouchWrapper, { width: size, height: svgHeight }]}>
+        <Svg width={size} height={svgHeight} style={styles.svg}>
+        <Defs>
+          <LinearGradient id="gaugeFill" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0%" stopColor={GAUGE_COLORS.filledEnd} />
+            <Stop offset="100%" stopColor={GAUGE_COLORS.filled} />
+          </LinearGradient>
+          <LinearGradient id="needleGradient" x1="0%" y1="50%" x2="100%" y2="50%">
+            <Stop offset="0%" stopColor={GAUGE_COLORS.pinCap} />
+            <Stop offset="60%" stopColor={GAUGE_COLORS.needle} />
+            <Stop offset="100%" stopColor={GAUGE_COLORS.needleHighlight} />
+          </LinearGradient>
+        </Defs>
 
-      <View style={styles.fuelLevel}>
-        <Text style={styles.empty}>E</Text>
-        <Text style={styles.full}>F</Text>
+        {/* Background track */}
+        <Path
+          d={trackPath}
+          stroke={GAUGE_COLORS.trackBorder}
+          strokeWidth={strokeWidth + 4}
+          fill="none"
+          strokeLinecap="round"
+        />
+        <Path
+          d={trackPath}
+          stroke={GAUGE_COLORS.track}
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeLinecap="round"
+        />
+
+        {/* Filled progress arc */}
+        {filledPath ? (
+          <Path
+            d={filledPath}
+            stroke="url(#gaugeFill)"
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeLinecap="round"
+          />
+        ) : null}
+
+        {/* Tick marks */}
+        {lines}
+
+        {/* Needle shadow (slightly offset) */}
+        <Path
+          d={needlePath}
+          fill={GAUGE_COLORS.needleShadow}
+          transform={`translate(2, 2)`}
+        />
+        {/* Needle — modern red visor pin */}
+        <Path d={needlePath} fill="url(#needleGradient)" />
+        {/* Center cap — visor pin head */}
+        <Circle cx={cx} cy={cy} r={10} fill={GAUGE_COLORS.trackBorder} />
+        <Circle cx={cx} cy={cy} r={7} fill={GAUGE_COLORS.pinCap} />
+        <Circle cx={cx} cy={cy} r={4} fill={GAUGE_COLORS.needleHighlight} />
+      </Svg>
+        <Pressable
+          style={styles.gaugeTouchLeft}
+          onPress={() => handlePress("left")}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Decrease fuel level"
+        />
+        <Pressable
+          style={styles.gaugeTouchRight}
+          onPress={() => handlePress("right")}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Increase fuel level"
+        />
       </View>
 
-      <Text>{getFraction(lineIndex, numLines)}</Text>
+      <View style={styles.labelsRow}>
+        <Text style={styles.label}>E</Text>
+        <Text style={styles.fraction}>{fractionDisplay}</Text>
+        <Text style={styles.label}>F</Text>
+      </View>
 
       <View style={styles.pressableContainer}>
         <LeftArrowButton onPress={() => handlePress("left")} />
@@ -145,29 +249,53 @@ const Gauge = ({ size, strokeWidth, strokeColor, onFuelLevelChange, setIsCalcula
 const styles = StyleSheet.create({
   gauge: {
     alignItems: "center",
+    justifyContent: "center",
   },
-  tankLevel: {
-    color: "black",
-    fontSize: 15,
+  gaugeTouchWrapper: {
+    position: "relative",
+    marginBottom: 4,
   },
-  fuelLevel: {
+  svg: {
+    marginBottom: 0,
+  },
+  gaugeTouchLeft: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: "50%",
+    height: "100%",
+  },
+  gaugeTouchRight: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    width: "50%",
+    height: "100%",
+  },
+  labelsRow: {
     flexDirection: "row",
-    marginTop: -70,
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: 200,
+    marginTop: -44,
+    marginBottom: 12,
   },
-  empty: {
-    fontSize: 25,
-    fontWeight: "bold",
-    textAlign: "center",
-    flex: 1 / 2,
+  label: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: GAUGE_COLORS.textMuted,
+    letterSpacing: 1,
   },
-  full: {
-    fontSize: 25,
-    fontWeight: "bold",
-    textAlign: "center",
-    flex: 1 / 2,
+  fraction: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: GAUGE_COLORS.text,
+    fontVariant: ["tabular-nums"],
+    includeFontPadding: false,
   },
   pressableContainer: {
     flexDirection: "row",
+    gap: 24,
   },
 });
 
