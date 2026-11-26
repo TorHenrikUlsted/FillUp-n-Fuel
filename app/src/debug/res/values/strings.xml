@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tells the test copy apart from the Play Store app on the same phone. -->
+    <string name="app_name" translatable="false">FillUp \'n Fuel dev</string>
+</resources>

@@ -13,6 +13,7 @@ captures/
 
 # Signing (keep the upload key and its passwords out of git)
 keystore.properties
+credentials.json
 *.jks
 *.keystore
 *.p12

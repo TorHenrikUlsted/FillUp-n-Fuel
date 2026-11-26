@@ -1,181 +1,199 @@
 package com.thuworkshop.fillupnfuel.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.East
-import androidx.compose.material.icons.filled.West
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.thuworkshop.fillupnfuel.R
 import com.thuworkshop.fillupnfuel.core.FuelLevel
+import com.thuworkshop.fillupnfuel.ui.theme.AppColors
+import com.thuworkshop.fillupnfuel.ui.theme.AppText
+import com.thuworkshop.fillupnfuel.ui.theme.SpaceGrotesk
 import kotlin.math.PI
+import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
-private object GaugeColors {
-    val Track = Color(0xFF2A2D3A)
-    val TrackBorder = Color(0xFF3D4152)
-    val Filled = Color(0xFF00D4AA)
-    val FilledEnd = Color(0xFF00A884)
-    val Needle = Color(0xFFDC2626)
-    val NeedleHighlight = Color(0xFFEF4444)
-    val NeedleShadow = Color(0x59000000)
-    val PinCap = Color(0xFFB91C1C)
-    val Tick = Color(0x59FFFFFF)
-    val TickMajor = Color(0x99FFFFFF)
-    val Text = Color(0xFF475569)
-    val TextMuted = Color(0xFF64748B)
-}
-
-private val GaugeWidth = 300.dp
-private val GaugeHeight = 200.dp
-private val ArcWidth = 10.dp
+// The dial is drawn in a 320 × 204 box, scaled to fit; E and F sit below the arc ends.
+private const val BOX_W = 320f
+private const val BOX_H = 204f
+private const val CX = 160f
+private const val CY = 170f
+private const val RADIUS = 140f
+private const val ARC_WIDTH = 18f
 
 /**
- * A half-circle fuel gauge from E to F in sixteenths. Tapping its left or right
- * half, or the arrows below, moves the needle one step.
+ * A half-circle fuel gauge from E to F in sixteenths. Tap or drag on the dial,
+ * or use − and +, to set the level.
  */
 @Composable
 fun FuelGauge(level: FuelLevel, onLevelChange: (FuelLevel) -> Unit, modifier: Modifier = Modifier) {
     val step by animateFloatAsState(level.step.toFloat(), label = "needle")
-    val lower = stringResource(R.string.decrease_fuel_level)
-    val higher = stringResource(R.string.increase_fuel_level)
+    val label = levelLabel(level)
+    val currentOnChange by rememberUpdatedState(onLevelChange)
+    val textMeasurer = rememberTextMeasurer()
 
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(Modifier.size(GaugeWidth, GaugeHeight)) {
-            Canvas(Modifier.matchParentSize()) { drawGauge(step) }
-            Row(Modifier.matchParentSize()) {
-                Box(
-                    Modifier.weight(1f).fillMaxHeight()
-                        .clickable(onClickLabel = lower, role = Role.Button) { onLevelChange(level.lower()) },
-                )
-                Box(
-                    Modifier.weight(1f).fillMaxHeight()
-                        .clickable(onClickLabel = higher, role = Role.Button) { onLevelChange(level.higher()) },
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier.width(200.dp).offset(y = (-44).dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = AppColors.Surface,
+        border = BorderStroke(1.5.dp, AppColors.Line),
+    ) {
+        Column(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            val edge = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = GaugeColors.TextMuted, letterSpacing = 1.sp)
-            Text(stringResource(R.string.gauge_empty), style = edge)
-            Text(level.label, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = GaugeColors.Text)
-            Text(stringResource(R.string.gauge_full), style = edge)
-        }
-
-        Row(
-            modifier = Modifier.offset(y = (-32).dp).fillMaxWidth().padding(horizontal = 48.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            IconButton(onClick = { onLevelChange(level.lower()) }, modifier = Modifier.size(56.dp)) {
-                Icon(Icons.Filled.West, contentDescription = lower, modifier = Modifier.size(40.dp))
+            val fuelLevel = stringResource(R.string.fuel_level, label)
+            Canvas(
+                modifier = Modifier
+                    .widthIn(max = 320.dp)
+                    .fillMaxWidth()
+                    .aspectRatio(BOX_W / BOX_H)
+                    .semantics { stateDescription = fuelLevel }
+                    .pointerInput(Unit) {
+                        detectTapGestures { currentOnChange(levelAt(it, size.width.toFloat())) }
+                    }
+                    .pointerInput(Unit) {
+                        detectDragGestures { change, _ -> currentOnChange(levelAt(change.position, size.width.toFloat())) }
+                    },
+            ) {
+                drawDial(step, textMeasurer)
             }
-            IconButton(onClick = { onLevelChange(level.higher()) }, modifier = Modifier.size(56.dp)) {
-                Icon(Icons.Filled.East, contentDescription = higher, modifier = Modifier.size(40.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                StepButton(
+                    enabled = level != FuelLevel.EMPTY,
+                    onClick = { onLevelChange(level.lower()) },
+                ) { Icon(Icons.Filled.Remove, stringResource(R.string.decrease_fuel_level)) }
+                Text(label, style = AppText.Level, color = AppColors.Ink)
+                StepButton(
+                    enabled = level != FuelLevel.FULL,
+                    onClick = { onLevelChange(level.higher()) },
+                ) { Icon(Icons.Filled.Add, stringResource(R.string.increase_fuel_level)) }
             }
         }
     }
 }
 
-/** Draws the gauge with the needle at [step] (fractional while animating). */
-private fun DrawScope.drawGauge(step: Float) {
-    val arcWidth = ArcWidth.toPx()
-    val center = Offset(size.width / 2, size.width / 2)
-    val radius = (size.width - arcWidth * 2) / 2 - 8.dp.toPx()
-    val arcTopLeft = Offset(center.x - radius, center.y - radius)
-    val arcSize = Size(radius * 2, radius * 2)
-    val sweep = 180f * step / FuelLevel.STEPS
+@Composable
+private fun StepButton(enabled: Boolean, onClick: () -> Unit, icon: @Composable () -> Unit) {
+    FilledTonalIconButton(
+        onClick = onClick,
+        enabled = enabled,
+        shape = CircleShape,
+        modifier = Modifier.size(56.dp),
+        colors = IconButtonDefaults.filledTonalIconButtonColors(
+            containerColor = AppColors.Mint,
+            contentColor = AppColors.OnMint,
+            disabledContainerColor = AppColors.Mint.copy(alpha = 0.4f),
+            disabledContentColor = AppColors.OnMint.copy(alpha = 0.35f),
+        ),
+        content = icon,
+    )
+}
 
-    // Track, then the filled part from E up to the needle.
-    drawArc(GaugeColors.TrackBorder, 180f, 180f, false, arcTopLeft, arcSize, style = Stroke(arcWidth + 4.dp.toPx(), cap = StrokeCap.Round))
-    drawArc(GaugeColors.Track, 180f, 180f, false, arcTopLeft, arcSize, style = Stroke(arcWidth, cap = StrokeCap.Round))
-    if (sweep > 0.1f) {
-        drawArc(
-            brush = Brush.horizontalGradient(listOf(GaugeColors.FilledEnd, GaugeColors.Filled), center.x - radius, center.x + radius),
-            startAngle = 180f,
-            sweepAngle = sweep,
-            useCenter = false,
-            topLeft = arcTopLeft,
-            size = arcSize,
-            style = Stroke(arcWidth, cap = StrokeCap.Round),
-        )
+@Composable
+private fun levelLabel(level: FuelLevel): String = when (level) {
+    FuelLevel.EMPTY -> stringResource(R.string.gauge_empty_label)
+    FuelLevel.FULL -> stringResource(R.string.gauge_full_label)
+    else -> level.label
+}
+
+/** The level nearest to where the dial was touched; below the pivot counts as the nearer end. */
+private fun levelAt(position: Offset, widthPx: Float): FuelLevel {
+    val scale = widthPx / BOX_W
+    val x = position.x / scale - CX
+    val y = (position.y / scale - CY).coerceAtMost(0f)
+    val angle = atan2(y, x) // −π (E) … 0 (F)
+    val step = ((angle + PI) / PI * FuelLevel.STEPS).roundToInt().coerceIn(0, FuelLevel.STEPS)
+    return FuelLevel(step)
+}
+
+private fun DrawScope.drawDial(step: Float, textMeasurer: TextMeasurer) {
+    val scale = size.width / BOX_W
+    val center = Offset(CX, CY) * scale
+    val radius = RADIUS * scale
+    val arcStroke = Stroke(ARC_WIDTH * scale, cap = StrokeCap.Round)
+    val arcTopLeft = center - Offset(radius, radius)
+    val arcSize = Size(radius * 2, radius * 2)
+
+    drawArc(AppColors.Line, 180f, 180f, false, arcTopLeft, arcSize, style = arcStroke)
+    if (step > 0.05f) {
+        drawArc(AppColors.GaugeFill, 180f, 180f * step / FuelLevel.STEPS, false, arcTopLeft, arcSize, style = arcStroke)
     }
 
-    // Ticks, with a longer one every quarter.
     for (i in 0..FuelLevel.STEPS) {
-        val angle = i * PI / FuelLevel.STEPS - PI
         val major = i % (FuelLevel.STEPS / 4) == 0
-        val length = (if (major) 14 else 8).dp.toPx()
+        val outer = (RADIUS - 22) * scale
+        val inner = outer - (if (major) 14 else 7) * scale
         drawLine(
-            color = if (major) GaugeColors.TickMajor else GaugeColors.Tick,
-            start = center.polar(radius, angle),
-            end = center.polar(radius - length, angle),
-            strokeWidth = (if (major) 2.5f else 1.5f).dp.toPx(),
+            color = if (major) AppColors.Muted else AppColors.TickMinor,
+            start = center.polar(outer, i.toFloat()),
+            end = center.polar(inner, i.toFloat()),
+            strokeWidth = (if (major) 3f else 1.5f) * scale,
             cap = StrokeCap.Round,
         )
     }
 
-    // Needle: a narrow triangle from just behind the pin to near the arc.
-    val angle = (sweep - 180f) * PI / 180
-    val tip = center.polar(radius - 4.dp.toPx(), angle)
-    val back = center.polar(6.dp.toPx(), angle + PI)
-    val halfWidth = 4.dp.toPx()
-    val side = Offset((halfWidth * cos(angle + PI / 2)).toFloat(), (halfWidth * sin(angle + PI / 2)).toFloat())
-    val needle = Path().apply {
-        moveTo(tip.x, tip.y)
-        lineTo(back.x + side.x, back.y + side.y)
-        lineTo(back.x - side.x, back.y - side.y)
-        close()
-    }
-    translate(2.dp.toPx(), 2.dp.toPx()) { drawPath(needle, GaugeColors.NeedleShadow) }
-    drawPath(
-        needle,
-        Brush.linearGradient(
-            0f to GaugeColors.PinCap, 0.6f to GaugeColors.Needle, 1f to GaugeColors.NeedleHighlight,
-            start = back, end = tip,
-        ),
-    )
+    drawLine(AppColors.Ink, center, center.polar(112 * scale, step), strokeWidth = 5 * scale, cap = StrokeCap.Round)
+    drawCircle(AppColors.Ink, 11 * scale, center)
+    drawCircle(AppColors.Sun, 4 * scale, center)
 
-    drawCircle(GaugeColors.TrackBorder, 10.dp.toPx(), center)
-    drawCircle(GaugeColors.PinCap, 7.dp.toPx(), center)
-    drawCircle(GaugeColors.NeedleHighlight, 4.dp.toPx(), center)
+    val edge = TextStyle(fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = AppColors.Muted)
+    for ((text, x) in listOf("E" to 20f, "F" to 300f)) {
+        val measured = textMeasurer.measure(text, edge)
+        drawText(measured, topLeft = Offset(x * scale - measured.size.width / 2f, size.height - measured.size.height))
+    }
 }
 
-private fun Offset.polar(distance: Float, angle: Double) =
-    Offset(x + (distance * cos(angle)).toFloat(), y + (distance * sin(angle)).toFloat())
+/** The point [distance] from this centre in the direction of gauge [step]. */
+private fun Offset.polar(distance: Float, step: Float): Offset {
+    val angle = PI + PI * step / FuelLevel.STEPS
+    return Offset(x + (distance * cos(angle)).toFloat(), y + (distance * sin(angle)).toFloat())
+}

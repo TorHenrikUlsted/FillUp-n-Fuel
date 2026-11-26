@@ -1,5 +1,7 @@
 package com.thuworkshop.fillupnfuel.core
 
+import kotlin.math.ceil
+
 data class TripInput(
     val distance: Double,
     val distanceUnit: DistanceUnit,
@@ -10,8 +12,6 @@ data class TripInput(
     val extraCost: Double,
 )
 
-enum class RefillAdvice { REFILL_ON_THE_WAY, NO_REFILL, NEEDS_TANK_SIZE }
-
 data class TripCost(
     /** How far a full tank goes, in the trip's distance unit; null without tank size and consumption. */
     val rangePerTank: Double?,
@@ -19,7 +19,8 @@ data class TripCost(
     val costPerDistanceUnit: Double,
     val costOneWay: Double,
     val costBothWays: Double,
-    val refill: RefillAdvice,
+    /** Stops to refuel on the way, starting with a full tank; null without a range. */
+    val refuelStops: Int?,
 )
 
 /** What a trip costs in fuel (plus extra fees), and whether a full tank lasts it. */
@@ -47,10 +48,6 @@ fun calculateTrip(input: TripInput): TripCost = with(input) {
         costPerDistanceUnit = costPerUnit,
         costOneWay = oneWay,
         costBothWays = oneWay * 2,
-        refill = when {
-            range == null -> RefillAdvice.NEEDS_TANK_SIZE
-            distance >= range -> RefillAdvice.REFILL_ON_THE_WAY
-            else -> RefillAdvice.NO_REFILL
-        },
+        refuelStops = range?.let { (ceil(distance / it).toInt() - 1).coerceAtLeast(0) },
     )
 }

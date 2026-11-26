@@ -22,7 +22,7 @@ class TripCalculatorTest {
         assertEquals(375.0, cost.costOneWay, 1e-9)
         assertEquals(750.0, cost.costBothWays, 1e-9)
         assertEquals(833.333, cost.rangePerTank!!, 1e-3)
-        assertEquals(RefillAdvice.NO_REFILL, cost.refill)
+        assertEquals(0, cost.refuelStops)
     }
 
     @Test
@@ -34,7 +34,7 @@ class TripCalculatorTest {
         assertEquals(0.075, cost.costPerDistanceUnit, 1e-9)
         assertEquals(30.0, cost.costOneWay, 1e-9)
         assertEquals(480.0, cost.rangePerTank!!, 1e-9)
-        assertEquals(RefillAdvice.NO_REFILL, cost.refill)
+        assertEquals(0, cost.refuelStops)
     }
 
     @Test
@@ -54,15 +54,18 @@ class TripCalculatorTest {
     }
 
     @Test
-    fun `a trip longer than a tank needs a refill`() {
-        assertEquals(RefillAdvice.REFILL_ON_THE_WAY, calculateTrip(base.copy(distance = 900.0)).refill)
+    fun `refuel stops count each extra tank`() {
+        // A full tank goes 833 km.
+        assertEquals(0, calculateTrip(base.copy(distance = 833.0)).refuelStops)
+        assertEquals(1, calculateTrip(base.copy(distance = 900.0)).refuelStops)
+        assertEquals(2, calculateTrip(base.copy(distance = 1700.0)).refuelStops)
     }
 
     @Test
     fun `without tank size there is no range`() {
         val cost = calculateTrip(base.copy(tankSize = 0.0))
         assertNull(cost.rangePerTank)
-        assertEquals(RefillAdvice.NEEDS_TANK_SIZE, cost.refill)
+        assertNull(cost.refuelStops)
         assertEquals(375.0, cost.costOneWay, 1e-9)
     }
 

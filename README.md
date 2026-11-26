@@ -29,7 +29,9 @@ keyPassword=…
 ## Structure
 
 - `core` – plain Kotlin: units, conversions, trip and fill-up calculations. No Android dependency; unit-tested.
-- `app` – the Android app: Compose UI, navigation, saved settings (DataStore), translations (`res/values`, `res/values-nb`).
+- `app` – the Android app: Compose UI (Trip and Fill up tabs, info sheet), saved settings (DataStore), translations (`res/values`, `res/values-nb`).
+
+Headings and numbers use [Space Grotesk](https://github.com/floriankarsten/space-grotesk) (SIL Open Font License, copy in `app/src/main/assets/licenses/`).
 
 # License
 [GNU General Public License v3.0](https://github.com/ThuWorkshop/FillUp-n-Fuel/blob/31c118058fe5653f293d79648785af0ccbbcef97/LICENSE)
@@ -40,10 +42,7 @@ keyPassword=…
 <a id="screenshots"></a>
 # Screenshots
 <p align="center">
-  <img src="./docs/screenshots/HomePage.jpg" width="240" />
-  <img src="./docs/screenshots/DistancePage.jpg" width="240" />
-  <img src="./docs/screenshots/DistanceModal.jpg" width="240" />
-  <img src="./docs/screenshots/FillUpPage.jpg" width="240" />
-  <img src="./docs/screenshots/FillUpModal.jpg" width="240" />
-  <img src="./docs/screenshots/InfoPage.jpg" width="240" />
+  <img src="./docs/screenshots/Trip.png" width="240" />
+  <img src="./docs/screenshots/FillUp.png" width="240" />
+  <img src="./docs/screenshots/InfoSheet.png" width="240" />
 </p>

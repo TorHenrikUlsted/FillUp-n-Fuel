@@ -1,62 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Home -->
-    <string name="choose_mode">Velg modus</string>
-    <string name="distance_calculator">Avstandskalkulator</string>
-    <string name="fill_up_calculator">Fyll opp kalkulator</string>
-    <string name="info">Informasjon</string>
+    <!-- Bars -->
+    <string name="tab_trip">Tur</string>
+    <string name="tab_fill_up">Fyll opp</string>
+    <string name="about_and_language">Om appen og språk</string>
+
+    <!-- Results -->
+    <string name="one_way">Én vei</string>
+    <string name="return_trip">Tur-retur %1$s</string>
+    <string name="range_per_tank">%1$s / tank</string>
+    <string name="no_refuel_stop">Ingen stopp</string>
+    <plurals name="refuel_stops">
+        <item quantity="one">%d stopp</item>
+        <item quantity="other">%d stopp</item>
+    </plurals>
+    <string name="add_tank_for_range">Legg inn tank for rekkevidde</string>
+    <string name="to_fill_up">Til full tank</string>
+
+    <!-- Fields -->
+    <string name="distance">Avstand</string>
+    <string name="your_car">Din bil</string>
+    <string name="consumption">Forbruk</string>
+    <string name="tank">Tank</string>
+    <string name="fuel_price">Drivstoffpris</string>
+    <string name="tolls_and_extras">Bom og annet</string>
 
     <!-- Units -->
-    <string name="kilometers">Kilometer</string>
-    <string name="miles">Miles</string>
-    <string name="liters">Liter</string>
-    <string name="gallons">Gallon</string>
-    <string name="per_kilometer">per kilometer</string>
-    <string name="per_mile">per mile</string>
-
-    <!-- Inputs -->
-    <string name="type_in">Skriv inn</string>
-    <string name="enter_distance">Skriv inn avstand i %1$s</string>
-    <string name="tank_size">Tankstørrelse</string>
-    <string name="enter_tank_size">Skriv inn tankstørrelse</string>
-    <string name="fuel_price">Drivstoffpris</string>
-    <string name="enter_fuel_price">Skriv inn drivstoffpris</string>
-    <string name="enter_fuel_efficiency">Skriv inn drivstoffbruk</string>
-    <string name="extra">Ekstra</string>
-    <string name="enter_extra_fees">Skriv inn ekstra avgifter</string>
-    <string name="fuel_unit">Drivstoffenhet</string>
-    <string name="calculate">Beregn</string>
-    <string name="back">Tilbake</string>
-    <string name="close">Lukk</string>
+    <string name="switch_to_miles">Bytt til miles</string>
+    <string name="switch_to_kilometers">Bytt til kilometer</string>
+    <string name="switch_to_us_units">Bytt til miles per gallon og gallon</string>
+    <string name="switch_to_metric_units">Bytt til liter per 100 km og liter</string>
 
     <!-- Fuel gauge -->
+    <string name="gauge_empty_label">Tom</string>
+    <string name="gauge_full_label">Full</string>
+    <string name="fuel_level">Drivstoffnivå %1$s</string>
     <string name="decrease_fuel_level">Senk drivstoffnivå</string>
     <string name="increase_fuel_level">Øk drivstoffnivå</string>
 
-    <!-- Trip result -->
-    <string name="trip_for">For %1$s</string>
-    <string name="you_can_travel">En full tank vil gi deg</string>
-    <string name="tank_size_required_for_estimate">Tankstørrelse er nødvendig for å estimere reiseavstand.</string>
-    <string name="it_will_cost">Det vil koste</string>
-    <string name="for_one_way">For en vei</string>
-    <string name="for_both_ways">For begge veier</string>
-    <string name="refill">Påfylling</string>
-    <string name="refill_on_the_way">Du må fylle underveis.</string>
-    <string name="no_refill_on_the_way">Du trenger ikke å fylle underveis.</string>
-    <string name="tank_size_required">Volum på tanken er nødvendig for å avgjøre om påfylling er nødvendig underveis.</string>
-
-    <!-- Fill-up result -->
-    <string name="cost">Kostnad</string>
-    <string name="you_need_to_fill">Du må fylle</string>
-
-    <!-- Info -->
-    <string name="info_title">Drivstoffkalkulator</string>
-    <string name="version">Versjon %1$s</string>
-    <string name="app_description_head">App Beskrivelse</string>
-    <string name="app_description_body">Dette er en veldig enkel app for beregning av drivstoffkostnader. Det er omtrentlig og kan være unøyaktig.</string>
-    <string name="usage_head">Hvordan bruke</string>
-    <string name="usage_body">Skriv inn i datafeltene på de forskjellige sidene. Velg ønsket enhet og trykk på beregnknappen når du er ferdig.</string>
+    <!-- Info sheet -->
+    <string name="version_line">%1$s · Kun anslag</string>
+    <string name="close">Lukk</string>
+    <string name="language_phone">Telefon</string>
     <string name="email">Epost</string>
     <string name="license">Lisens</string>
-    <string name="privacy_policy">Personvern</string>
+    <string name="privacy">Personvern</string>
 </resources>
