@@ -11,6 +11,13 @@ val keystoreProperties = Properties().apply {
     rootProject.file("keystore.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
 }
 
+// One version source: the release workflow passes the git tag (v3.0.1 → -Papp.versionName=3.0.1);
+// local builds use the default. versionCode = major·10000 + minor·100 + patch (the Expo app reached 20400+).
+val appVersionName: String = providers.gradleProperty("app.versionName").getOrElse("3.0.0")
+val appVersionCode: Int = Regex("""(\d+)\.(\d{1,2})\.(\d{1,2})""").matchEntire(appVersionName)
+    ?.destructured?.let { (major, minor, patch) -> major.toInt() * 10000 + minor.toInt() * 100 + patch.toInt() }
+    ?: error("app.versionName must look like 3.0.1 (minor and patch below 100), got $appVersionName")
+
 android {
     namespace = "com.thuworkshop.fillupnfuel"
     compileSdk {
@@ -22,9 +29,8 @@ android {
         applicationId = "com.ThuWorkshop.drivstoffKalkulator"
         minSdk = 24
         targetSdk = 36
-        // versionCode = major·10000 + minor·100 + patch; the Expo app reached 20400+.
-        versionCode = 30000
-        versionName = "3.0.0"
+        versionName = appVersionName
+        versionCode = appVersionCode
     }
 
     signingConfigs {
