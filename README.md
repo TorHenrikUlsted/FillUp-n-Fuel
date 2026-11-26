@@ -25,7 +25,7 @@ Test the app, then push a tag; GitHub Actions tests, builds, signs and uploads t
 git tag v3.0.1 && git push origin v3.0.1
 ```
 
-The tag sets the version (`v3.0.1` → versionName 3.0.1, versionCode 30001). Update `release-notes/whatsnew/` (Play's "What's new", max 500 characters per language) before tagging. The workflow needs the secrets `UPLOAD_KEYSTORE_BASE64`, `UPLOAD_KEYSTORE_PASSWORD` and `PLAY_SERVICE_ACCOUNT_JSON`.
+The tag sets the version (`v3.0.1` → versionName 3.0.1, versionCode 30001). Update `release-notes/whatsnew/` (Play's "What's new", max 500 characters per language) before tagging. The secrets `UPLOAD_KEYSTORE_BASE64`, `UPLOAD_KEYSTORE_PASSWORD` and `PLAY_SERVICE_ACCOUNT_JSON` live in the GitHub environment `play`, which only `v*` tags can use, and only repository admins can create `v*` tags. Pull request builds run unsigned and never see them.
 
 For local release builds, `keystore.properties` (git-ignored) points at the Play upload key (backed up in 1Password):
 
