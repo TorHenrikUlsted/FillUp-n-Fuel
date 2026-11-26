@@ -19,7 +19,7 @@ Needs JDK 17+ and the Android SDK (platform 37.1).
 
 ## Release
 
-Push a tag; GitHub Actions tests, builds, signs and uploads the bundle to Play's **internal testing** track, where you promote it:
+Test the app, then push a tag; GitHub Actions tests, builds, signs and uploads the bundle to Play's **production** track as a draft. Check it in Play Console and press **Send for review**:
 
 ```sh
 git tag v3.0.1 && git push origin v3.0.1
