@@ -1,10 +1,12 @@
 # Push a tag like v3.0.1 to test, build, sign and upload the app to Play's
 # production track as a draft; check it and press "Send for review" in Play
-# Console. Pull requests and manual runs test and build only.
+# Console. Pull requests and manual runs only test and build, unsigned.
 #
-# Secrets: UPLOAD_KEYSTORE_BASE64, UPLOAD_KEYSTORE_PASSWORD (the upload key in
-# 1Password) and PLAY_SERVICE_ACCOUNT_JSON (a Google Cloud service account with
-# release access to the app in Play Console).
+# The secrets live in the "play" environment, which only v* tags may use, and
+# a ruleset lets only repository admins create v* tags. So pull request runs
+# never see the upload key: UPLOAD_KEYSTORE_BASE64, UPLOAD_KEYSTORE_PASSWORD
+# (the upload key in 1Password) and PLAY_SERVICE_ACCOUNT_JSON (a Google Cloud
+# service account with release access to the app in Play Console).
 name: Build and release
 
 on:
@@ -21,7 +23,7 @@ concurrency:
   cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 jobs:
-  release:
+  check:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -34,35 +36,48 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
+      - name: Test, lint and build the bundle (unsigned)
+        run: ./gradlew test lintDebug bundleRelease
+
+  release:
+    needs: check
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: play
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
       - name: Read the version from the tag
         id: version
-        if: github.ref_type == 'tag'
         run: |
           version="${GITHUB_REF_NAME#v}"
           if [[ ! "$version" =~ ^[0-9]+\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then
             echo "::error::Tag must look like v3.0.1, got $GITHUB_REF_NAME"
             exit 1
           fi
-          echo "arg=-Papp.versionName=$version" >> "$GITHUB_OUTPUT"
+          echo "name=$version" >> "$GITHUB_OUTPUT"
 
       - name: Write the upload key
         env:
           UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
           UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
         run: |
-          if [[ -z "$UPLOAD_KEYSTORE_BASE64" ]]; then
-            echo "No upload key (a fork's pull request): the bundle stays unsigned."
-            exit 0
-          fi
           echo "$UPLOAD_KEYSTORE_BASE64" | base64 --decode > upload-keystore.jks
           printf 'storeFile=upload-keystore.jks\nstorePassword=%s\nkeyAlias=upload\nkeyPassword=%s\n' \
             "$UPLOAD_KEYSTORE_PASSWORD" "$UPLOAD_KEYSTORE_PASSWORD" > keystore.properties
 
-      - name: Test and build the signed bundle
-        run: ./gradlew test lintDebug bundleRelease ${{ steps.version.outputs.arg }}
+      - name: Build the signed bundle
+        run: ./gradlew bundleRelease -Papp.versionName=${{ steps.version.outputs.name }}
 
       - name: Upload a production draft
-        if: github.ref_type == 'tag'
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
