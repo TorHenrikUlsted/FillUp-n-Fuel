@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bars -->
+    <string name="tab_trip">Tur</string>
+    <string name="tab_fill_up">Fyll opp</string>
+    <string name="about_and_language">Om appen og språk</string>
+
+    <!-- Results -->
+    <string name="one_way">Én vei</string>
+    <string name="return_trip">Tur-retur %1$s</string>
+    <string name="range_per_tank">%1$s / tank</string>
+    <string name="no_refuel_stop">Ingen stopp</string>
+    <plurals name="refuel_stops">
+        <item quantity="one">%d stopp</item>
+        <item quantity="other">%d stopp</item>
+    </plurals>
+    <string name="add_tank_for_range">Legg inn tank for rekkevidde</string>
+    <string name="to_fill_up">Til full tank</string>
+
+    <!-- Fields -->
+    <string name="distance">Avstand</string>
+    <string name="your_car">Din bil</string>
+    <string name="consumption">Forbruk</string>
+    <string name="tank">Tank</string>
+    <string name="fuel_price">Drivstoffpris</string>
+    <string name="tolls_and_extras">Bom og annet</string>
+
+    <!-- Units -->
+    <string name="switch_to_miles">Bytt til miles</string>
+    <string name="switch_to_kilometers">Bytt til kilometer</string>
+    <string name="switch_to_us_units">Bytt til miles per gallon og gallon</string>
+    <string name="switch_to_metric_units">Bytt til liter per 100 km og liter</string>
+
+    <!-- Fuel gauge -->
+    <string name="gauge_empty_label">Tom</string>
+    <string name="gauge_full_label">Full</string>
+    <string name="fuel_level">Drivstoffnivå %1$s</string>
+    <string name="decrease_fuel_level">Senk drivstoffnivå</string>
+    <string name="increase_fuel_level">Øk drivstoffnivå</string>
+
+    <!-- Info sheet -->
+    <string name="version_line">%1$s · Kun anslag</string>
+    <string name="close">Lukk</string>
+    <string name="language_phone">Telefon</string>
+    <string name="email">Epost</string>
+    <string name="license">Lisens</string>
+    <string name="privacy">Personvern</string>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches AppColors.Ground, so the window shows no white flash on launch. -->
+    <color name="ground">#FFF6F8F5</color>
+</resources>

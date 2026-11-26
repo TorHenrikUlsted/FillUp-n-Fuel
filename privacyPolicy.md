@@ -2,7 +2,7 @@
 This privacy policy applies to the FillUp 'n fuel mobile application.
 
 ## Information Collection and Use
-The app does not collect sensitive information about its users. It uses a simple, unencrypted, asynchronous, persistent, key-value storage system that is global to the app to store unsensitive data.
+The app does not collect sensitive information about its users. It stores the values you type (such as tank size and fuel price) unencrypted on the device, so they are still there next time you open the app.
 
 ## Data Retention
 This app processing data "ephemerally", which means the data is only stored locally and should be removed by uninstalling the app.

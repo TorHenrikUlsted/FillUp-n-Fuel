@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">FillUp \'n Fuel</string>
+
+    <!-- Bars -->
+    <string name="tab_trip">Trip</string>
+    <string name="tab_fill_up">Fill up</string>
+    <string name="about_and_language">About and language</string>
+
+    <!-- Results -->
+    <string name="one_way">One way</string>
+    <string name="return_trip">Return %1$s</string>
+    <string name="range_per_tank">%1$s / tank</string>
+    <string name="no_refuel_stop">No stop</string>
+    <plurals name="refuel_stops">
+        <item quantity="one">%d stop</item>
+        <item quantity="other">%d stops</item>
+    </plurals>
+    <string name="add_tank_for_range">Add tank for range</string>
+    <string name="to_fill_up">To fill up</string>
+
+    <!-- Fields -->
+    <string name="distance">Distance</string>
+    <string name="your_car">Your car</string>
+    <string name="consumption">Consumption</string>
+    <string name="tank">Tank</string>
+    <string name="fuel_price">Fuel price</string>
+    <string name="tolls_and_extras">Tolls &amp; extras</string>
+
+    <!-- Units -->
+    <string name="unit_km" translatable="false">km</string>
+    <string name="unit_mi" translatable="false">mi</string>
+    <string name="unit_liter" translatable="false">L</string>
+    <string name="unit_gallon" translatable="false">gal</string>
+    <string name="unit_l_per_100km" translatable="false">L/100km</string>
+    <string name="unit_mpg" translatable="false">mpg</string>
+    <string name="switch_to_miles">Switch to miles</string>
+    <string name="switch_to_kilometers">Switch to kilometres</string>
+    <string name="switch_to_us_units">Switch to miles per gallon and gallons</string>
+    <string name="switch_to_metric_units">Switch to litres per 100 km and litres</string>
+
+    <!-- Fuel gauge -->
+    <string name="gauge_empty_label">Empty</string>
+    <string name="gauge_full_label">Full</string>
+    <string name="fuel_level">Fuel level %1$s</string>
+    <string name="decrease_fuel_level">Lower fuel level</string>
+    <string name="increase_fuel_level">Raise fuel level</string>
+
+    <!-- Info sheet -->
+    <string name="version_line">%1$s · Estimates only</string>
+    <string name="close">Close</string>
+    <string name="language_phone">Phone</string>
+    <string name="language_norwegian" translatable="false">Norsk</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="github" translatable="false">GitHub</string>
+    <string name="email">Email</string>
+    <string name="license">License</string>
+    <string name="privacy">Privacy</string>
+</resources>

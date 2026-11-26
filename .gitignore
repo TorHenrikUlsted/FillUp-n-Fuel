@@ -1,33 +1,23 @@
-# dependencies
-node_modules/
+# Gradle and Kotlin
+.gradle/
+.kotlin/
+build/
+local.properties
 
-# Expo
-.expo/
-dist/
-web-build/
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
 
-# Native
-*.orig.*
+# Signing (keep the upload key and its passwords out of git)
+keystore.properties
+credentials.json
 *.jks
-*.p8
+*.keystore
 *.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+*.pem
 
 # macOS
 .DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
