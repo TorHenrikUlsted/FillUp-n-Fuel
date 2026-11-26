@@ -17,7 +17,17 @@ Needs JDK 17+ and the Android SDK (platform 37.1).
 ./gradlew bundleRelease     # Play Store bundle (signed when keystore.properties exists)
 ```
 
-`keystore.properties` (git-ignored) points release builds at the Play upload key:
+## Release
+
+Test the app, then push a tag; GitHub Actions tests, builds, signs and uploads the bundle to Play's **production** track as a draft. Check it in Play Console and press **Send for review**:
+
+```sh
+git tag v3.0.1 && git push origin v3.0.1
+```
+
+The tag sets the version (`v3.0.1` → versionName 3.0.1, versionCode 30001). Update `release-notes/whatsnew/` (Play's "What's new", max 500 characters per language) before tagging. The workflow needs the secrets `UPLOAD_KEYSTORE_BASE64`, `UPLOAD_KEYSTORE_PASSWORD` and `PLAY_SERVICE_ACCOUNT_JSON`.
+
+For local release builds, `keystore.properties` (git-ignored) points at the Play upload key (backed up in 1Password):
 
 ```properties
 storeFile=upload-keystore.jks
